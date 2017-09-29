@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.io.FileReader;
@@ -7,6 +8,8 @@ import java.io.StringReader;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 
+
+import edu.stanford.nlp.ling.SentenceUtils;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
@@ -27,8 +30,74 @@ import org.json.simple.parser.ParseException;
 
 
 
-public class DetectSpam{
-	public static void detectCommand(LexicalizedParser lp, String sentence) {		   
+public class DetectPhishingMail{
+	
+
+	
+	/*
+	 * Extracting phishing keywords
+	 * */
+	private static void searchKeyword(List<TypedDependency> tdl, List<String> verb, List<String> obj) {
+	    for(int i = 0; i < tdl.size(); i++) {
+	    	String typeDepen = tdl.get(i).reln().toString();
+	    	
+	    	//verb
+	    	if( verb.contains(typeDepen) ){
+	    		System.out.print("verb :" + tdl.get(i).dep().originalText() + ">");
+	    		System.out.println(tdl.get(i).gov().originalText());
+	    	}
+	    	//obj
+	    	if( obj.contains(typeDepen) ) {
+	    		System.out.print("obj :" + tdl.get(i).gov().originalText() + ">");
+	    		System.out.println(tdl.get(i).dep().originalText());
+	    	}
+	    }
+	}
+	
+	/*
+	 * Extracting command sentence
+	 * */
+	private static boolean isImperative(Tree parse) {
+		TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
+	    TregexMatcher n = noNP.matcher(parse);
+	    while(n.find()) {
+	    	String match = n.getMatch().firstChild().label().toString();
+	    	
+	    	//remove gerund, to + infinitiv
+	    	if(match.equals("VP")) {
+	    		match = n.getMatch().firstChild().firstChild().label().toString();
+	    	}
+	    	if(match.equals("TO") || match.equals("VBG")) {
+	    		continue;
+	    	}
+	    	
+	    	//imperative sentence
+	    	return true;
+	    }
+	    return false;
+	}
+	private static boolean isSuggestion() {
+		//
+		return false;
+	}
+	private static boolean isSuggestion(Tree parse) {
+		TregexPattern sug = TregexPattern.compile("((@VP=md > S ) $,,@NP=you )");
+	    TregexMatcher s = sug.matcher(parse);
+	    
+	    while(s.find()) {
+	    	String y = s.getNode("you").getChild(0).getChild(0).value();
+	    	
+	    	if(y.equals("you") || y.equals("You") || y.equals("YOU")) {
+	    		return true;
+	    	}
+	    }
+	    return false;
+	}
+	private static boolean isDesireExpression() {
+		return false;
+	}
+	
+	private static void detectCommand(LexicalizedParser lp, String sentence) {		   
 		
 		//penn tree
 		TokenizerFactory<CoreLabel> tokenizerFactory =
@@ -44,26 +113,21 @@ public class DetectSpam{
 	    GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
 	    List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
 	   
-	    //1. extracting imperative sentence
-	    TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
-	    TregexMatcher n = noNP.matcher(parse);
-	    System.out.print( "<<<" + sentence );
-	    while(n.find()) {
-	    	String match = n.getMatch().firstChild().label().toString();
-	    	
-	    	//remove gerund, to + infinitiv
-	    	if(match.equals("VP")) {
-	    		match = n.getMatch().firstChild().firstChild().label().toString();
-	    	}
-	    	if(match.equals("TO") || match.equals("VBG")) {
-	    		continue;
-	    	}
-	    	
-	    	//imperative sentence
-	    	System.out.println(" --------- yes");
-	    	n.getMatch().pennPrint();	
+	    //1. extracting imperative sentence    	
+	    if(isImperative(parse)) {
+	    	searchKeyword(tdl,Arrays.asList("nmod","nsubj","subjpass"), Arrays.asList("dobj"));
 	    }
-	    System.out.println(">>>");	   
+	    
+	    //2. extracting suggestion sentence
+	    if(isSuggestion()) {
+	    	searchKeyword(tdl,Arrays.asList("nsubj","subjpass"), Arrays.asList("dobj"));
+	    }
+	
+	    //3. extracting sentence including desire expression
+	    if(isDesireExpression()) {
+	    	// ¿å¸Á
+	    }
+	    	   
 	}
 	
 	public static void main(String[] args) {
