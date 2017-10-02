@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 import java.io.FileReader;
@@ -24,10 +25,10 @@ import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
 import edu.stanford.nlp.trees.tregex.TregexPattern;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 
 
 public class DetectPhishingMail{
@@ -129,6 +130,16 @@ public class DetectPhishingMail{
 	    }
 	    	   
 	}
+	public static List<String> readArray(JsonReader reader) throws IOException {
+		List<String> contents = new ArrayList<String>();
+		
+		reader.beginArray();
+		while(reader.hasNext()) {
+			contents.add(reader.nextString());
+		}
+		reader.endArray();
+		return contents;
+	}
 	
 	public static void main(String[] args) {
 		String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
@@ -179,23 +190,22 @@ public class DetectPhishingMail{
 			    	
 			    //json input file
 			    case 3:
-			    	JSONParser parser = new JSONParser();
-			    	
+			
 			    	try {
-			    		Object file = parser.parse(new FileReader(fileName+".json"));
-			    		JSONObject jsonSpamData = (JSONObject)file;
-				    	
-				    	for(Object key: jsonSpamData.keySet()) {
-				    		ArrayList<String> SpamSentences = (( ArrayList<String>)jsonSpamData.get((String)key));
-				    		for(String value : SpamSentences) {
+			    		JsonReader reader = new JsonReader(new FileReader(fileName + ".json"));
+			    		Gson gson = new GsonBuilder().create();
+				    		
+			    		reader.beginObject();
+				    	while(reader.hasNext()) {
+				    		String name = reader.nextName();
+				    		List<String> sentences = readArray(reader);
+				    		for(String value : sentences) {
 				    			detectCommand(lp, value);
 				    		}
 				    	}
 			    	}catch (FileNotFoundException e) {
 			    		e.printStackTrace();
 			    	}catch (IOException e) {
-			    		e.printStackTrace();
-			    	}catch (ParseException e) {
 			    		e.printStackTrace();
 			    	}
 			    	break;
