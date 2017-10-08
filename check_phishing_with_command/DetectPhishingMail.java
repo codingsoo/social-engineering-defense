@@ -1,18 +1,39 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+
+import org.apache.commons.lang.WordUtils;
+
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.HasWord;
+/*
+ * wordnet java library JWI
+ * */
+import edu.mit.jwi.Dictionary;
+import edu.mit.jwi.IDictionary;
+import edu.mit.jwi.item.IIndexWord;
+import edu.mit.jwi.item.ISynset;
+import edu.mit.jwi.item.ISynsetID;
+import edu.mit.jwi.item.IWord;
+import edu.mit.jwi.item.IWordID;
+import edu.mit.jwi.item.POS;
+import edu.mit.jwi.item.Pointer;
+import edu.mit.jwi.item.SynsetID;
+
+import edu.stanford.nlp.ling.SentenceUtils;
 import edu.stanford.nlp.ling.TaggedWord;
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
-import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.Tokenizer;
 import edu.stanford.nlp.process.TokenizerFactory;
@@ -24,28 +45,73 @@ import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.trees.tregex.TregexMatcher;
 import edu.stanford.nlp.trees.tregex.TregexPattern;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 
 public class DetectPhishingMail {
-	public static boolean detectCommand(LexicalizedParser lp, String sentence) {
-		// penn tree
-		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "");
-		Tokenizer<CoreLabel> tok = tokenizerFactory.getTokenizer(new StringReader(sentence));
-		List<CoreLabel> rawWords = tok.tokenize();
-		Tree parse = lp.apply(rawWords);
+	private static DBConnection db = new DBConnection();
+	private static String[] specialWord;
+	
+	
+	private static void getHypernyms(IDictionary dict, String w) {
+		// get the synset
+		IIndexWord idxWord = dict.getIndexWord (w, POS . NOUN ) ;
+		IWordID wordID = idxWord.getWordIDs ().get(0) ; // 1st meaning
+		IWord word = dict.getWord ( wordID );
+		ISynset synset = word.getSynset ();
+		
+		// get the hypernyms
+		List<ISynsetID> hypernyms = synset.getRelatedSynsets(Pointer.HYPERNYM);
+		
+		List<IWord> words;
+		for(ISynsetID sid : hypernyms) {
+			words = dict.getSynset(sid).getWords();
+			System.out.print(sid + "<");
+			for(Iterator<IWord> i = words.iterator(); i.hasNext();) {
+				System.out.print(i.next().getLemma());
+			}
+		}
+	}
 
-		// dependency
-		TreebankLanguagePack tlp = lp.treebankLanguagePack(); // PennTreebankLanguagePack for English
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
-		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
-		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
 
-		// 1. extracting imperative sentence
+	/*
+	 * Extracting phishing keywords
+	 */
+	private static void searchKeyword(List<TypedDependency> tdl, List<String> verb, List<String> obj) {
+	    ArrayList<String> verbList = new ArrayList<String>(), objList = new ArrayList<String>();
+		
+		for(int i = 0; i < tdl.size(); i++) {
+	    	String typeDepen = tdl.get(i).reln().toString();
+	    	String subjWord = null, verbWord = null, objWord = null;
+	    	//verb
+	    	if( verb.contains(typeDepen) ){
+	    		subjWord = tdl.get(i).dep().originalText();
+	    		verbWord = tdl.get(i).gov().originalText();
+	    	}
+	    	//obj
+	    	if( obj.contains(typeDepen) ) {
+	    		verbWord = tdl.get(i).gov().originalText();
+	    		objWord = tdl.get(i).dep().originalText();
+	    		
+	    		System.out.println(verbWord + " " + objWord);
+	    		verbList.add(verbWord);
+	    		objList.add(objWord);
+	    	}
+	    }
+		
+		db.DBadd(verbList, objList);
+	}
+
+	/*
+	 * Extracting command sentence
+	 */
+	// "(@VP=verb (< S !> SBAR) !$,,@NP)"
+	// (@VP=verb (< S !> SBAR) | (< S & > S & < NN) !$,,@NP)
+	private static boolean isImperative(Tree parse) {
 		TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
 		TregexMatcher n = noNP.matcher(parse);
-		System.out.print("<<<" + sentence);
 		while (n.find()) {
 			String match = n.getMatch().firstChild().label().toString();
 
@@ -57,113 +123,166 @@ public class DetectPhishingMail {
 				continue;
 			}
 
-			//n.getMatch().pennPrint();
-			System.out.println(">>>");
-			
 			// imperative sentence
 			System.out.println("It is imperative sentence.");
-			System.out.println();
 			return true;
 		}
-		System.out.println(">>>");
 		return false;
 	}
-	
-	public static void printObjVerb(List<TypedDependency> tdl) throws IOException  {
-		for (int i = 0; i < tdl.size(); i++) { // System.out.println(tdl.get(i));
-			String extractElement = tdl.get(i).reln().toString();
-			if (extractElement.equals("dobj")) {
-				System.out.println("<Object : " + tdl.get(i).dep().value() + "> "
-						+ "<Verb : " + tdl.get(i).gov().value() + ">");
-			}
-		}
+
+	private static String extractOneWord(int num, ArrayList<TaggedWord> listedTaggedString) {
+		return listedTaggedString.get(num).toString().toLowerCase();
 	}
 
-	public static void detectSuggestDesire(LexicalizedParser lp, String sentence) throws IOException {
+	private static boolean isSuggestion(LexicalizedParser lp, String sentence,
+			ArrayList<TaggedWord> listedTaggedString) {
+		//
+		for (int i = 0; i < listedTaggedString.size() - 1; i++) {
+			if (extractOneWord(i, listedTaggedString).contentEquals("should/md")
+					|| extractOneWord(i, listedTaggedString).contentEquals("could/md")
+					|| extractOneWord(i, listedTaggedString).contentEquals("might/md")
+					|| extractOneWord(i, listedTaggedString).contentEquals("may/md")
+					|| extractOneWord(i, listedTaggedString).contentEquals("must/md")
+					|| (extractOneWord(i, listedTaggedString).contentEquals("have/vbp")
+							&& extractOneWord(i + 1, listedTaggedString).contentEquals("to/to"))) {
+				if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
+					System.out.println("It is suggestion.");
+					return true;
+				}
+			} else if (extractOneWord(i, listedTaggedString).contentEquals("would/md")) {
+				if (extractOneWord(i + 1, listedTaggedString).contentEquals("like/vb")) {
+					System.out.println("It is desire.");
+					return true;
+				} else if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
+					System.out.println("It is suggestion.");
+					return true;
+				}
+			} else if (extractOneWord(i, listedTaggedString).contentEquals("'d/md")) {
+				if (extractOneWord(i + 1, listedTaggedString).contentEquals("like/md")) {
+					System.out.println("It is desire.");
+					return true;
+				} else if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
+					System.out.println("It is suggestion.");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
-		TreebankLanguagePack tlp = lp.treebankLanguagePack(); // a PennTreebankLanguagePack for English
-		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
+	private static boolean isSuggestion(Tree parse) {
+		TregexPattern sug = TregexPattern.compile("((@VP=md > S ) $,,@NP=you )");
+		TregexMatcher s = sug.matcher(parse);
 
+		while (s.find()) {
+			String y = s.getNode("you").getChild(0).getChild(0).value();
+
+			if (y.equals("you") || y.equals("You") || y.equals("YOU")) {
+				System.out.println("It is suggestion sentence.");
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isDesireExpression(List<TypedDependency> tdl) {
+		for (int i = 0; i < tdl.size(); i++) {
+			String extractElement = tdl.get(i).reln().toString();
+			String oneWord = tdl.get(i).gov().value().toString().toLowerCase();
+			if (extractElement.equals("nsubj")) {
+				if (oneWord.contains("want") || oneWord.equals("hope") || oneWord.equals("wish")
+						|| oneWord.equals("desire")) {
+					System.out.println("It is desire sentence.");
+					return true;
+					// printObjVerb(tdl);
+				}
+			}
+		}
+		return false;
+	}
+
+	private static void detectCommand(LexicalizedParser lp, String sentence, PrintWriter pw2) throws IOException {
+
+		// if the sentence has only one word, go to the next sentence.
+		if (sentence.split(" ").length < 2) {
+			return;
+		}
+
+		// penn tree
 		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "");
 		Tokenizer<CoreLabel> tok = tokenizerFactory.getTokenizer(new StringReader(sentence));
 		List<CoreLabel> rawWords = tok.tokenize();
 		Tree parse = lp.apply(rawWords);
-
 		ArrayList<TaggedWord> listedTaggedString = parse.taggedYield();
+
+		// dependency
+		TreebankLanguagePack tlp = lp.treebankLanguagePack(); // PennTreebankLanguagePack for English
+		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
 		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
 
-		if (parse.firstChild().getNodeNumber(1).toString().contains("SQ") ||
-				parse.firstChild().getNodeNumber(1).toString().contains("SBARQ")) {
-			System.out.println();
-			return;
-		} else {
-			// Judge the suggestion sentence
-			for (int i = 0; i < listedTaggedString.size() - 1; i++) {
-				if (listedTaggedString.get(i).toString().toLowerCase().contentEquals("should/md")
-						|| listedTaggedString.get(i).toString().toLowerCase().contentEquals("could/md")
-						|| listedTaggedString.get(i).toString().toLowerCase().contentEquals("might/md")
-						|| listedTaggedString.get(i).toString().toLowerCase().contentEquals("may/md")
-						|| listedTaggedString.get(i).toString().toLowerCase().contentEquals("must/md")
-						|| (listedTaggedString.get(i).toString().toLowerCase().contentEquals("have/vbp")
-								&& listedTaggedString.get(i + 1).toString().toLowerCase().contentEquals("to/to"))) {
-					if (i != 0 && listedTaggedString.get(i - 1).toString().toLowerCase().contentEquals("you/prp")) {
-						System.out.println("It is suggestion.");
-						printObjVerb(tdl);
-						System.out.println();
-						return;
-					}
-				}
-				else if(listedTaggedString.get(i).toString().toLowerCase().contentEquals("would/md")) {
-					if(listedTaggedString.get(i+1).toString().toLowerCase().contentEquals("like/md")) {
-						System.out.println("It is desire.");
-						System.out.println();
-						return;
-					}
-					else {
-						System.out.println("It is suggestion.");
-						System.out.println();
-						return;
-					}
-				}
-				else if(listedTaggedString.get(i).toString().toLowerCase().contentEquals("'d/md")) {
-					if(listedTaggedString.get(i+1).toString().toLowerCase().contentEquals("like/md")) {
-						System.out.println("It is desire.");
-						System.out.println();
-						return;
-					}
-					else {
-						System.out.println("It is suggestion.");
-						System.out.println();
-						return;
-					}
-				}
-			}
+		System.out.println("<<< " + sentence + " >>>");
 
-			// Judge the desire sentence
-			for (int i = 0; i < tdl.size(); i++) {
-				String extractElement = tdl.get(i).reln().toString();
-				if (extractElement.equals("nsubj")) {
-					if (tdl.get(i).gov().value().toString().toLowerCase().equals("want")
-							|| tdl.get(i).gov().value().toString().toLowerCase().equals("hope")
-							|| tdl.get(i).gov().value().toString().toLowerCase().equals("wish")
-							|| tdl.get(i).gov().value().toString().toLowerCase().equals("desire")) {
-						System.out.println("It is desire sentence.");
-						System.out.println();
-						return;
-						//printObjVerb(tdl);
-					}
-				}
+		// 0. Hope, Kindly, Apply, Reply exception process
+		for (int i = 0; i < 4; i++) {
+			if (sentence.toLowerCase().startsWith(specialWord[i])) {
+				System.out.println("It is imperative sentence.");
+				searchKeyword(tdl, Arrays.asList("nmod", "nsubj", "subjpass"), Arrays.asList("dobj"));
+				System.out.println();
+				return;
 			}
+		}
+
+		// 1. extracting imperative sentence
+		if (isImperative(parse)) {
+			searchKeyword(tdl, Arrays.asList("nmod", "nsubj", "subjpass"), Arrays.asList("dobj"));
+			pw2.println(sentence);
+		}
+
+		// 2. extracting suggestion sentence
+		else if (isSuggestion(lp, sentence, listedTaggedString)) {
+			searchKeyword(tdl, Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"));
+			pw2.println(sentence);
+		}
+
+		// 3. extracting sentence including desire expression
+		else if (isDesireExpression(tdl)) {
+			// ¿å¸Á
+			searchKeyword(tdl, Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"));
+			pw2.println(sentence);
 		}
 		System.out.println();
 	}
 
-	public static void main(String[] args) {
+	public static List<String> readArray(JsonReader reader) throws IOException {
+		List<String> contents = new ArrayList<String>();
+
+		reader.beginArray();
+		while (reader.hasNext()) {
+			contents.add(reader.nextString());
+		}
+		reader.endArray();
+		return contents;
+	}
+
+	public static void main(String[] args) throws IOException {
 		String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 		String fileName = System.getProperty("user.dir") + "\\src\\data";
 
 		LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);
+
+		PrintWriter pw2 = new PrintWriter(new FileWriter(
+				fileName + "result.txt", true));
+
+//		PrintWriter pw2 = new PrintWriter(new FileWriter(
+//				"c:/users/dyson/desktop/java_workspace/stanfordParser/extract_imperative_command.txt", true));
+
+		int count = 0;
+		specialWord = new String[4];
+		specialWord[0] = "hope";
+		specialWord[1] = "reply";
+		specialWord[2] = "apply";
+		specialWord[3] = "kindly";
 
 		if (args.length == 0) {
 			Scanner scanner = null;
@@ -178,7 +297,7 @@ public class DetectPhishingMail {
 				case 1:
 					while (scanner.hasNext()) {
 						String value = scanner.nextLine();
-						detectCommand(lp, value);
+						detectCommand(lp, value, pw2);
 					}
 					break;
 
@@ -187,14 +306,16 @@ public class DetectPhishingMail {
 					FileReader fr = null;
 					BufferedReader br = null;
 					try {
-						fr = new FileReader("c:/users/dyson/desktop/java_workspace/stanfordParser/imperatives.txt");
+				    	fr = new FileReader(fileName + ".txt"); 
+						//fr = new FileReader("c:/users/dyson/desktop/java_workspace/stanfordParser/imperatives.txt");
 						br = new BufferedReader(fr);
 
 						String value;
 						while ((value = br.readLine()) != null) {
-							if(!detectCommand(lp, value)) {
-								detectSuggestDesire(lp, value);
-							}
+							value = WordUtils.capitalizeFully(value, new char[] { '.' });
+							// reply, hope,
+							System.out.println(++count);
+							detectCommand(lp, value, pw2);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -212,25 +333,26 @@ public class DetectPhishingMail {
 
 				// json input file
 				case 3:
-					JSONParser parser = new JSONParser();
 
 					try {
-						Object file = parser.parse(new FileReader("c:/Users/dyson/Desktop/java_workspace/stanfordParser/sentence_tokenized_scam2.json"));
-						JSONObject jsonSpamData = (JSONObject) file;
-
-						for (Object key : jsonSpamData.keySet()) {
-							ArrayList<String> SpamSentences = ((ArrayList<String>) jsonSpamData.get((String) key));
-							for (String value : SpamSentences) {
-								if(!detectCommand(lp, value)) {
-									detectSuggestDesire(lp, value);
-								}
+						JsonReader reader = new JsonReader(new FileReader(fileName + ".json"));
+			    		
+						//JsonReader reader = new JsonReader(new FileReader(
+						//		"c:/Users/dyson/Desktop/java_workspace/stanfordParser/sentence_tokenized_scam2.json"));
+						Gson gson = new GsonBuilder().create();
+						reader.beginObject();
+						while (reader.hasNext()) {
+							String name = reader.nextName();
+							List<String> sentences = readArray(reader);
+							for (String value : sentences) {
+								value = WordUtils.capitalizeFully(value, new char[] { '.' });
+								System.out.println(++count);
+								detectCommand(lp, value, pw2);
 							}
 						}
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (ParseException e) {
 						e.printStackTrace();
 					}
 					break;
@@ -243,5 +365,7 @@ public class DetectPhishingMail {
 					scanner.close();
 			}
 		}
+		pw2.close();
 	}
+
 }
