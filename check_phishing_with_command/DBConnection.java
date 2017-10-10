@@ -1,14 +1,20 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.*;
 
-public class DBConnection {
+
+
+class DBConnection {
 	Connection cn = null;
 	Statement st = null;
+	PreparedStatement pst = null;
+	ResultSet rs = null;
+	WordNet wn = new WordNet();
 	
-	public DBConnection() {
+	DBConnection() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			cn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/test", "root", "0000");
@@ -19,13 +25,56 @@ public class DBConnection {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}	
+		   
+
+	}
+	/*
+	 * check whether input word's hypernyms are in List, 
+	 */
+	boolean DBcheck(String table, String verb, String obj) {
+		List<String> verbHn = wn.getHypernyms(verb);
+		List<String> objHn = wn.getHypernyms(obj);
+		
+		try {
+			pst = cn.prepareStatement("SELECT * FROM " + table);
+			rs = pst.executeQuery();
+
+			while(rs.next()) {
+				String DBverb = rs.getString(1);
+				String DBobj = rs.getString(2);
+				if(verbHn.contains(DBverb) && objHn.contains(DBobj)) return true;
+			}
+			
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	/*
+	 * print the table DB data.
+	 */
+	void DBread(String table){
+		try {
+			pst = cn.prepareStatement("SELECT * FROM " + table);
+			rs = pst.executeQuery();
+
+			while(rs.next()) {
+				String DBverb = rs.getString(1);
+				String DBobj = rs.getString(2);
+				System.out.println(DBverb + " " + DBobj);
+			}
+			
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/*
 	 * insert the input data. (verb, object)
 	 */
-	public void DBadd(ArrayList<String> v, ArrayList<String> o ) {
-		String table = "inputword"; 
+	void DBadd(String table, ArrayList<String> v, ArrayList<String> o ) {
 		if(0 == v.size()) return;
 		String sql = "insert into " + table + " values('" + v.get(0) +"','" + o.get(0) + "')";
 		
@@ -44,5 +93,5 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 	}
-	
+		
 }

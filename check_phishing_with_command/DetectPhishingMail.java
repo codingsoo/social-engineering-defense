@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -15,21 +14,8 @@ import java.io.StringReader;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 
-/*
- * wordnet java library JWI
- * */
-import edu.mit.jwi.Dictionary;
-import edu.mit.jwi.IDictionary;
-import edu.mit.jwi.item.IIndexWord;
-import edu.mit.jwi.item.ISynset;
-import edu.mit.jwi.item.ISynsetID;
-import edu.mit.jwi.item.IWord;
-import edu.mit.jwi.item.IWordID;
-import edu.mit.jwi.item.POS;
-import edu.mit.jwi.item.Pointer;
-import edu.mit.jwi.item.SynsetID;
 
-import edu.stanford.nlp.ling.SentenceUtils;
+
 import edu.stanford.nlp.ling.TaggedWord;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
@@ -47,32 +33,15 @@ import edu.stanford.nlp.trees.tregex.TregexPattern;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 public class DetectPhishingMail {
 	private static DBConnection db = new DBConnection();
 	private static String[] specialWord;
-	
-	
-	private static void getHypernyms(IDictionary dict, String w) {
-		// get the synset
-		IIndexWord idxWord = dict.getIndexWord (w, POS . NOUN ) ;
-		IWordID wordID = idxWord.getWordIDs ().get(0) ; // 1st meaning
-		IWord word = dict.getWord ( wordID );
-		ISynset synset = word.getSynset ();
-		
-		// get the hypernyms
-		List<ISynsetID> hypernyms = synset.getRelatedSynsets(Pointer.HYPERNYM);
-		
-		List<IWord> words;
-		for(ISynsetID sid : hypernyms) {
-			words = dict.getSynset(sid).getWords();
-			System.out.print(sid + "<");
-			for(Iterator<IWord> i = words.iterator(); i.hasNext();) {
-				System.out.print(i.next().getLemma());
-			}
-		}
+	private static int save_mode;
+    
+	private static boolean checkBlacklist(String verb, String obj) {
+		return db.DBcheck("blacklist", verb, obj);
 	}
 
 
@@ -98,10 +67,15 @@ public class DetectPhishingMail {
 	    		System.out.println(verbWord + " " + objWord);
 	    		verbList.add(verbWord);
 	    		objList.add(objWord);
+	    		if(checkBlacklist(verbWord, objWord)) {
+	    			System.out.println("Spam mail!");
+	    		}
 	    	}
 	    }
-		
-		db.DBadd(verbList, objList);
+		/*
+		 * insert verb and object to table "inputword"
+		 */
+		if(save_mode == 1) db.DBadd("inputword",verbList, objList);
 	}
 
 	/*
@@ -120,9 +94,11 @@ public class DetectPhishingMail {
 				match = n.getMatch().firstChild().firstChild().label().toString();
 			}
 			if (match.equals("TO") || match.equals("VBG")) {
+				n.find();
 				continue;
 			}
-
+			System.out.println(match);
+			
 			// imperative sentence
 			System.out.println("It is imperative sentence.");
 			return true;
@@ -290,7 +266,10 @@ public class DetectPhishingMail {
 				scanner = new Scanner(System.in);
 				System.out.println("Select the input method\n 1: text input 2: text File 3:JSON File  >> ");
 				int inputMethod = scanner.nextInt();
-
+				
+				System.out.println("0: non-save mode  1: save mode  >> ");
+				save_mode = scanner.nextInt();				
+				
 				switch (inputMethod) {
 
 				// standard text input
