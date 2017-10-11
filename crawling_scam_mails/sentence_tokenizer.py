@@ -12,7 +12,7 @@ p = re.compile('[a-z]\.[A-Z]')
 with open("punctuated_scam.json","r") as f:
     data = json.load(f)
     for title, content in data.items():
-        if len(content) > 30:
+        if len(content) > 200 or 'Scam received' in content or 'scam received' in content or 'fraud mail' in content:
 
             content = str(content).replace("b'", "")
             content = re.sub('\\\\x..', '', content)
