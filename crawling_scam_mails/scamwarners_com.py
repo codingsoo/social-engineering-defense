@@ -20,7 +20,7 @@ html = req.text
 soup = BeautifulSoup(html, 'html.parser')
 titles = soup.select('td > a')
 
-titles = titles[27:]
+titles = titles[21:]
 
 # show titles
 print("-*-*-*-*-*-Scam List-*-*-*-*-*-")
@@ -39,8 +39,8 @@ if(select_scam_input == '1'):
 else:
     select_scam_input = input("select range of number that you want to download(seperator : -) : ")
     number = select_scam_input.split("-")
-    number1 = number[0]
-    number2 = number[1]
+    number1 = int(number[0])
+    number2 = int(number[1])
     select_scam_input = range(number1,number2+1)
 
 # append all of the pages' selected path url
@@ -93,24 +93,26 @@ num_of_image = 0
 # append all of the phishing mail data(exact phishing mail data)
 phishing_mail_data = {}
 for phishing_name, phishing_url in data.items():
-    print(phishing_url)
-    print(phishing_name)
-    num_of_phishing_mail = num_of_phishing_mail + 1
-    req = requests.get(phishing_url)
-    html = req.text
-    soup = BeautifulSoup(html, 'html.parser')
-    article = soup.find_all(match_class(["content"]))
+    try:
+        req = requests.get(phishing_url)
+        html = req.text
+        soup = BeautifulSoup(html, 'html.parser')
+        article = soup.find_all(match_class(["content"]))
+        if 'From:' in article[0].text:
+            num_of_phishing_mail = num_of_phishing_mail + 1
+            print(num_of_phishing_mail)
+            phishing_mail_data[phishing_name] = article[0].text
 
-    phishing_mail_data[phishing_name] = article[0].text
+            if (("img" in str(article[0])) and ("icon" not in str(article[0]))):
+                num_of_image = num_of_image + 1
+                print("image found")
 
-    print(article[0].text)
-    if (("img" in str(article[0])) and ("icon" not in str(article[0]))):
-        num_of_image = num_of_image + 1
-        print("image found")
+    except:
+        print(Exception)
 
 print("Total number of mail data :",num_of_phishing_mail)
 print("Total number of image data :",num_of_image)
 
 # store title and phishing mail data
-with open(os.path.join(BASE_DIR, 'scamwarners_romance_scams.json'), 'w+') as json_file:
+with open(os.path.join(BASE_DIR, 'scamwarners.json'), 'w+') as json_file:
     json.dump(phishing_mail_data, json_file)
