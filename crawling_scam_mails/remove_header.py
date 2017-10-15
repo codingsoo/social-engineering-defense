@@ -6,6 +6,7 @@ with open('scam_email_with_HTML_tag.json','r') as f:
     data = json.load(f)
     count = 0
     for content in data:
+        content = content.replace('\r','')
         if '\n' in content:
             email_string = ""
             raw_data = content.split('\n')
