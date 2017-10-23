@@ -1,8 +1,8 @@
-send email
-send number
-forward number
+sends emails
+sends number
+forward numbers
 give money
 take money
-know number
+knew number
 notice number
 note card

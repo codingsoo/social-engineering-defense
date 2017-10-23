@@ -18,6 +18,7 @@ import edu.mit.jwi.item.IWord;
 import edu.mit.jwi.item.IWordID;
 import edu.mit.jwi.item.POS;
 import edu.mit.jwi.item.Pointer;
+import edu.mit.jwi.morph.WordnetStemmer;
 
 class WordNet {
 	String path = System.getProperty("user.dir") + "\\src\\dict";
@@ -56,6 +57,21 @@ class WordNet {
 		
 		return result;
 	}
+	
+	String getStemWord(String word) {
+		WordnetStemmer Stemmer = new WordnetStemmer(dict);
+	    List<String> StemmedWords;
+	    String str = null;
+	        
+	    // null for all words, POS.NOUN for nouns
+	    StemmedWords = Stemmer.findStems(word, null);
+	    if (StemmedWords.isEmpty())
+	    	return null;
+	    
+	    str = StemmedWords.iterator().next();
+	    return str;
+	}	
+	
 	/*
 	 * hypernyms about w
 	 */

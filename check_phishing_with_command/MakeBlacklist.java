@@ -57,16 +57,19 @@ public class MakeBlacklist {
 			while((s = br.readLine()) != null) {
 				String[] data = s.split(" ");
 				if(data.length < 2) continue;
+
+				String key = wn.getStemWord(data[0]);		
+				String value = wn.getStemWord(data[1]);
 				
-				verb.put(data[0], null);
+				verb.put(key, null);
 				
-				if(obj.containsKey(data[0])) {
-					obj.get(data[0]).add(data[1]);
+				if(obj.containsKey(key)) {
+					obj.get(key).add(value);
 				}
 				else {
 					Set<String> l = new HashSet<String>();
-					l.add(data[1]);
-					obj.put(data[0],l);
+					l.add(value);
+					obj.put(key,l);
 				}
 			}
 		} catch (IOException e) {
