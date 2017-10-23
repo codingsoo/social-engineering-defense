@@ -1,0 +1,8 @@
+send email
+send number
+forward number
+give money
+take money
+know number
+notice number
+note card

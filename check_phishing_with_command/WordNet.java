@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.mit.jwi.Dictionary;
 import edu.mit.jwi.IDictionary;
@@ -27,23 +28,40 @@ class WordNet {
 			URL url = new URL("file", null, path);
 			dict = new Dictionary(url);
 		    dict.open();
-		    
-		    System.out.println("open dictionary");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}   
+	    System.out.println("open dictionary");
 	}
 	
-
+	ArrayList<String> getSynonyms(String strWord){
+		System.out.print(strWord + " >> ");
+		IIndexWord idxWord = dict.getIndexWord(strWord, POS.VERB);
+		ArrayList<String> result = new ArrayList<String>();
+		
+		if(idxWord == null) return null;
+    	
+		for(IWordID i : idxWord.getWordIDs()) {
+    		ISynset synset = dict.getWord(i).getSynset();
+    		for(IWord w : synset.getWords()) {
+    			if(!result.contains(w.getLemma())) {
+    				result.add(w.getLemma());
+    				System.out.print(w.getLemma() + " ");
+    			}
+    		}
+		}
+		System.out.println("");
+		
+		return result;
+	}
 	/*
 	 * hypernyms about w
 	 */
-	List<String> getHypernyms(String w) {
+	ArrayList<String> getHypernyms(String w) {
 
-		List<String> result = new ArrayList<String>();
+		ArrayList<String> result = new ArrayList<String>();
 		
 		// get the synset
 		IIndexWord idxWord = dict.getIndexWord (w, POS . NOUN ) ;
