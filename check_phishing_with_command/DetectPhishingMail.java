@@ -268,7 +268,7 @@ public class DetectPhishingMail {
 
 		// 3. extracting sentence including desire expression
 		else if (isDesireExpression(tdl)) {
-			// ¿å¸Á
+			// ìš•ë§
 			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
 		}
 		//System.out.println();

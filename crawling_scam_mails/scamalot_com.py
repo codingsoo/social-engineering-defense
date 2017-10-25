@@ -1,102 +1,47 @@
-import requests
+import langid
 from bs4 import BeautifulSoup
+import requests
 import json
-import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-url = "http://www.scamalot.com/ScamTipReports/"
-req = requests.get(url)
-html = req.text
-soup = BeautifulSoup(html, 'html.parser')
-titles = soup.select('select > option')
-my_titles = titles[1:25]
-
-# show titles
-print("-*-*-*-*-*-Scam List-*-*-*-*-*-")
-for count, title in enumerate(my_titles):
-    print(count," : ",title.text)
-print("-*-*-*-*-*-Scam List End-*-*-*-*-*-")
-print()
-
-# user can select the titles(with range or one by one)
-select_scam_input = input("select mode = 1 : some scams 2 : cluster mode")
-
-if(select_scam_input == '1'):
-    select_scam_input = input("select scam number that you want to download(seperator : ,) : ")
-    select_scam_input = select_scam_input.split(",")
-else:
-    select_scam_input = input("select range of number that you want to download(seperator : -) : ")
-    number = select_scam_input.split("-")
-    number1 = number[0]
-    number2 = number[1]
-    select_scam_input = range(number1,number2+1)
-
-# append all of the pages' selected path url
-path = []
-
-for scam_page in select_scam_input:
-    page_url = url + my_titles[int(scam_page)].get('value')
-    path.append(page_url)
-    req = requests.get(page_url)
-    html = req.text
-    soup = BeautifulSoup(html, 'html.parser')
-    pages = soup.select('div > a')
-    num_of_pages = int(pages[-3].text)
-
-    if(num_of_pages < 2):
-        pass
-    else:
-        for page in range(2,num_of_pages):
-            page_url_path = page_url + "/" + str(page)
-            path.append(page_url_path)
-
-base_url = "http://www.scamalot.com"
-
-# append all of the url's data(exact phishing mail)
-data = {}
-
-for data_path in path:
-
-    req = requests.get(data_path)
-    html = req.text
-    soup = BeautifulSoup(html, 'html.parser')
-    pages = soup.select('td > a')
-
-    for page in pages:
-
-        if (("ScamTipReports" in page.get('href')) and ("more" not in page.text)):
-            data[page.text[:-3]] = page.get('href')
-num_of_phishing_mail = 0
-
-
-# append all of the phishing mail data(exact phishing mail data)
-phishing_mail_data = {}
+base_url = 'https://www.scamalot.com/ScamTipReports//'
+base_url2 = 'https://www.scamalot.com'
+url_data = []
+num = 0
 num_of_image = 0
-for phishing_name, phishing_url in data.items():
 
-    num_of_phishing_mail = num_of_phishing_mail + 1
+for i in range(2218):
+    page = i + 1
+    print(page)
+    req = requests.get(base_url + str(page))
+    soup = BeautifulSoup(req.text, 'html.parser')
 
-    req = requests.get(base_url+phishing_url)
-    html = req.text
-    soup = BeautifulSoup(html, 'html.parser')
-    phishing_data = soup.select('td > span')
+    for j in range(10):
+        data_number = j+1
+        scam_content = soup.find(class_=('row' + str(data_number)))
+        scam_email = soup.find(class_=('scammerinfo table'))
 
-    for exect_data in phishing_data:
-        if exect_data.get('itemprop'):
-            phishing_mail_data[phishing_name] = exect_data.text
-            if("img" in str(exect_data)):
-                num_of_image = num_of_image + 1
+        if 'Email Address:' in scam_email.text:
+            url = soup.find_all('a',attrs={'itemprop':'reportNumber'})
+            url_data.append(base_url2+url[j].get('href'))
+scam_data = []
 
-print("Total number of mail data :",num_of_phishing_mail)
-print("Total number of image :",num_of_image)
+for scam_url in url_data:
+    try:
+        req = requests.get(scam_url)
+        soup = BeautifulSoup(req.text, 'html.parser')
+        scam_content = soup.find('span',{'itemprop':'articleBody'})
+        if 'img' in str(scam_content):
+            num_of_image = num_of_image + 1
+            print('image found!')
+        if langid.classify(scam_content.text)[0] == 'en' and len(scam_content.text) > 10:
+            scam_data.append(scam_content.text)
+            num = num + 1
+            print(num)
+    except:
+        print(Exception)
 
-# store title and url
-# with open(os.path.join(BASE_DIR, 'scamalot_result.json'), 'w+') as json_file:
-#     json.dump(data, json_file)
+with open('scamalot_url_dataset.json','w') as f:
+    json.dump(url_data,f)
 
-# store title and phishing mail data
-with open(os.path.join(BASE_DIR, 'scamalot_wills_probate_scam.json'), 'w+') as json_file:
-    json.dump(phishing_mail_data, json_file)
-
-
+with open('scamalot_data.json','w') as f:
+    json.dump(scam_data,f)
