@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import edu.mit.jwi.item.POS;
 
 public class MakeBlacklist {
 	public static Map<String,String> verb = new HashMap<String,String>();
@@ -12,7 +13,32 @@ public class MakeBlacklist {
 	
 	public static Map<String,Set<String>> objList;
 	public static WordNet wn = new WordNet();
-
+	
+	public MakeBlacklist() {
+		try {
+			readBlacklist();
+		} catch(Exception e) {
+			System.out.println("MakeBlacklist open fail");
+		}
+	}
+	public static boolean checkBlacklist(String verbWord, String objWord){
+	
+		if(!verb.containsKey(verbWord)) {
+			//System.out.println("no key");
+			return false;
+		}
+		
+		Set<String> temp = obj.get(UnionFind(verb.get(verbWord)));
+		if(temp == null) {
+			//System.out.println(UnionFind(verb.get(verbWord)) + "null value");
+			return false;
+			}
+		if(!temp.contains(objWord)) {			
+			//System.out.println(UnionFind(verb.get(verbWord)) + "no value");
+			return false;
+		}
+		return true;
+	}
 	/*
 	 * read saved blacklist
 	 */
@@ -26,10 +52,14 @@ public class MakeBlacklist {
 			String s;
 			while((s = br.readLine()) != null && !s.equals("obj")) {
 				String[] data = s.split(" ");
+
 				if(data.length < 2) continue;
 				
-				verb.put(data[0],data[1]);
-				
+				System.out.println(data[0]);
+				//null인 경우 사전에 없는 단어
+				String val = data[1];
+				if(data[1].equals(null)) val = data[0];
+				verb.put(data[0],val);
 			}
 			while((s = br.readLine()) != null ) {
 				String[] data = s.split(" ");
@@ -41,7 +71,6 @@ public class MakeBlacklist {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	/*
 	 * Reading text data (verb obj)
@@ -58,13 +87,15 @@ public class MakeBlacklist {
 				String[] data = s.split(" ");
 				if(data.length < 2) continue;
 
-				String key = wn.getStemWord(data[0]);		
-				String value = wn.getStemWord(data[1]);
+				String key = data[0];		
+				String value =data[1];
 				
 				verb.put(key, null);
 				
 				if(obj.containsKey(key)) {
-					obj.get(key).add(value);
+					Set<String> temp = obj.get(key);
+					temp.add(value);
+					obj.put(key,temp);
 				}
 				else {
 					Set<String> l = new HashSet<String>();
@@ -110,8 +141,10 @@ public class MakeBlacklist {
 	public static ArrayList<String> isSynonym(String a, Set<String> set) {
 		ArrayList<String> result = new ArrayList<String>();
 		
-		ArrayList<String> synList = wn.getSynonyms(a);
-		for(String s : set) {
+		ArrayList<String> synList = wn.getSynonyms(a, POS.VERB);
+		if(synList == null) return null;
+		
+		for(String s : set){
 			if(synList.contains(s)) {
 				result.add(s);
 			}
@@ -134,21 +167,30 @@ public class MakeBlacklist {
 	 * combine same meaning verb
 	 */
 	public static void makeVerbList(){
+		Map<String,String> temp = new HashMap<String,String>();
+		
+		
 	    for (Map.Entry<String, String> entry : verb.entrySet()) {
-	    	//if root(value) exists, don't search
+			//if root(value) exists, don't search
 	    	String key = entry.getKey();
+	    	
 	    	if(verb.get(key) != null) continue;
 	    	ArrayList<String> synList = isSynonym(key, verb.keySet());
-	    	for(String i : synList) {
+	    	if(synList == null) {
+
+    			continue;
+	    	}
+	    	
+	    	for(String i : synList) {	    	
 	    		//if root exists, change the root.
-	    		if(verb.get(i) != null) {
+	    		if(verb.get(i) != null) { 
 	    			verb.put( UnionFind(key) , UnionFind(verb.get(i)) );
 	    			continue;
 	    		}
-	    		verb.put(i,key);
+	    		temp.put(i,key);
 	    	}
 	    }
-	    
+	    verb.putAll(temp);   
 	}
 	
 	/*
@@ -159,26 +201,31 @@ public class MakeBlacklist {
 			String key = entry.getKey();
 			String val = entry.getValue();
 			if(key.equals(val)) continue;
-			
-			obj.get(val).addAll(obj.get(key));
-			obj.remove(key);		
-		}   
+			if(obj.get(val) != null)obj.get(val).addAll(obj.get(key));
+			obj.remove(key);
+		}
+		
+		//add synonyms
+		for(Map.Entry<String, Set<String>> entry : obj.entrySet()) {
+			Set<String> val = entry.getValue();
+			Set<String> temp = new HashSet<String>();
+			for(String word : val) {
+				List<String> synWords = wn.getSynonyms(word, POS.NOUN);
+				if(synWords != null)
+					temp.addAll(wn.getSynonyms(word, POS.NOUN));
+			}
+			val.addAll(temp);
+			entry.setValue(val);
+		}
 	}
 	public static void makeObjTrie() {
-		
 	}
-
 	public static void makeVerbTrie() {
-		
 	}
+/*
 	public static void main(String[] args) {
-		readData();
-		System.out.println("read");
-		makeVerbList();
-		System.out.println("makeVerbList");
-		makeObjList();
-		System.out.println("makeObjList");
-		saveData();
+		readBlacklist();
+		checkBlacklist("make","stack");
+	*/
 	
-	}
 }

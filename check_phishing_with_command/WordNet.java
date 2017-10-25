@@ -37,9 +37,9 @@ class WordNet {
 	    System.out.println("open dictionary");
 	}
 	
-	ArrayList<String> getSynonyms(String strWord){
+	ArrayList<String> getSynonyms(String strWord, POS pos){
 		System.out.print(strWord + " >> ");
-		IIndexWord idxWord = dict.getIndexWord(strWord, POS.VERB);
+		IIndexWord idxWord = dict.getIndexWord(strWord, pos);
 		ArrayList<String> result = new ArrayList<String>();
 		
 		if(idxWord == null) return null;
@@ -66,7 +66,7 @@ class WordNet {
 	    // null for all words, POS.NOUN for nouns
 	    StemmedWords = Stemmer.findStems(word, null);
 	    if (StemmedWords.isEmpty())
-	    	return null;
+	    	return word;
 	    
 	    str = StemmedWords.iterator().next();
 	    return str;
@@ -75,12 +75,12 @@ class WordNet {
 	/*
 	 * hypernyms about w
 	 */
-	ArrayList<String> getHypernyms(String w) {
+	ArrayList<String> getHypernyms(String w, POS pos) {
 
 		ArrayList<String> result = new ArrayList<String>();
 		
 		// get the synset
-		IIndexWord idxWord = dict.getIndexWord (w, POS . NOUN ) ;
+		IIndexWord idxWord = dict.getIndexWord (w, pos ) ;
 	    
 		if(idxWord == null) return result;
 		

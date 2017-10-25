@@ -1,5 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.mit.jwi.item.POS;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,8 +35,8 @@ class DBConnection {
 	 * check whether input word's hypernyms are in List, 
 	 */
 	boolean DBcheck(String table, String verb, String obj) {
-		List<String> verbHn = wn.getHypernyms(verb);
-		List<String> objHn = wn.getHypernyms(obj);
+		List<String> verbHn = wn.getHypernyms(verb, POS.VERB);
+		List<String> objHn = wn.getHypernyms(obj, POS.NOUN);
 		
 		try {
 			pst = cn.prepareStatement("SELECT * FROM " + table);

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -41,9 +42,21 @@ public class DetectPhishingMail {
 	private static int save_mode;
 	private static PrintWriter pw2;
 	private static CoreNLP cn = new CoreNLP();
+	private static MakeBlacklist BL = new MakeBlacklist();
 	
-	private static boolean checkBlacklist(String verb, String obj) {
+	
+	private static boolean checkDBBlacklist(String verb, String obj) {
 		return db.DBcheck("blacklist", verb, obj);
+	}
+	private static boolean checkBlacklist(String verb, String obj) {
+		if(BL.checkBlacklist(verb, obj)) {
+			System.out.println("Spam mail!");
+			return true;
+		}
+		else {
+			System.out.println("nope");
+			return false;
+		}
 	}
 
 
@@ -52,7 +65,13 @@ public class DetectPhishingMail {
 	 */
 	private static void searchKeyword(List<TypedDependency> tdl, String sentence, List<String> verb ,List<String> obj, String extVerb) {
 	    ArrayList<String> verbList = new ArrayList<String>(), objList = new ArrayList<String>();
-		
+		System.out.println("command!");
+	    if(save_mode == 2) {
+	    	pw2.println(sentence);
+	    	pw2.println();
+	    }
+	
+	    
 		for(int i = 1; i < tdl.size(); i++) {
 			TypedDependency tdl_i = tdl.get(i);
 	    	String typeDepen = tdl_i.reln().toString();
@@ -79,14 +98,13 @@ public class DetectPhishingMail {
 	    		
 	    		verbWord = govRoot;
 	    		objWord = depRoot;
-	    		pw2.println("verb > " + verbWord + " obj > " + objWord);
+	    		if(save_mode == 2)	pw2.println("verb > " + verbWord + " obj > " + objWord);
 	    		
 	    		System.out.println(verbWord + " " + objWord);
 	    		verbList.add(verbWord);
 	    		objList.add(objWord);
-	    		//if(checkBlacklist(verbWord, objWord)) {
-	    		//	System.out.println("Spam mail!");
-	    		//}
+	    		
+	    		checkBlacklist(verbWord, objWord);
 	    	}
 	    }
 		
@@ -231,11 +249,7 @@ public class DetectPhishingMail {
 		// 0. Hope, Kindly, Apply, Reply exception process
 		for (int i = 0; i < 4; i++) {
 			if (sentence.toLowerCase().startsWith(specialWord[i])) {
-			//	System.out.println("It is imperative sentence.");
-				pw2.println(sentence);
 				searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"), "");
-				pw2.println();
-			//	System.out.println();
 				return;
 			}
 		}
@@ -243,24 +257,19 @@ public class DetectPhishingMail {
 		// 1. extracting imperative sentence
 		String imperVerb = isImperative(parse);
 		if (imperVerb != null) {
-			pw2.println(sentence);
 			searchKeyword(tdl, sentence,Arrays.asList( "nsubj", "subjpass"), Arrays.asList("dobj","nmod","xcomp"),imperVerb);
-			pw2.println();
+			
 		}
 
 		// 2. extracting suggestion sentence
 		else if (isSuggestion(lp, sentence, listedTaggedString)) {
-			pw2.println(sentence);
 			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
-			pw2.println();
 		}
 
 		// 3. extracting sentence including desire expression
 		else if (isDesireExpression(tdl)) {
 			// ¿å¸Á
-			pw2.println(sentence);
 			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
-			pw2.println();
 		}
 		//System.out.println();
 	}
@@ -282,16 +291,6 @@ public class DetectPhishingMail {
 		String number = "1000";
 		LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);
 
-		try {
-			pw2 = new PrintWriter(new FileWriter(
-					fileName + "result_" + number + ".txt", true));
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-//		PrintWriter pw2 = new PrintWriter(new FileWriter(
-//				"c:/users/dyson/desktop/java_workspace/stanfordParser/extract_imperative_command.txt", true));
 
 		int count = 0;
 		specialWord = new String[4];
@@ -307,9 +306,31 @@ public class DetectPhishingMail {
 				System.out.println("Select the input method\n 1: text input 2: text File 3:JSON File  >> ");
 				int inputMethod = scanner.nextInt();
 				
-				System.out.println("0: non-save mode  1: save mode  >> ");
-				save_mode = scanner.nextInt();	
+				while(true) {
+					
+					try {
+						System.out.println("0: non-save mode  1: data save mode  2: text file save mode >> ");
+						save_mode = scanner.nextInt();
+					} catch(Exception e) {
+						scanner.nextLine();
+						continue;
+					}
+					break;
+				}
 				if(save_mode == 1) db = new DBConnection();
+		
+				if(save_mode == 2) {
+					try {
+						pw2 = new PrintWriter(new FileWriter(
+								fileName + "result_" + number + ".txt", true));
+//						pw2 = new PrintWriter(new FileWriter(
+//						"c:/users/dyson/desktop/java_workspace/stanfordParser/extract_imperative_command.txt", true));
+
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
 				
 				switch (inputMethod) {
 
