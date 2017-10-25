@@ -40,6 +40,7 @@ public class DetectPhishingMail {
 	private static String[] specialWord;
 	private static int save_mode;
 	private static PrintWriter pw2;
+	private static CoreNLP cn = new CoreNLP();
 	
 	private static boolean checkBlacklist(String verb, String obj) {
 		return db.DBcheck("blacklist", verb, obj);
@@ -49,24 +50,35 @@ public class DetectPhishingMail {
 	/*
 	 * Extracting phishing keywords
 	 */
-	private static void searchKeyword(List<TypedDependency> tdl, List<String> verb ,List<String> obj, String extVerb) {
+	private static void searchKeyword(List<TypedDependency> tdl, String sentence, List<String> verb ,List<String> obj, String extVerb) {
 	    ArrayList<String> verbList = new ArrayList<String>(), objList = new ArrayList<String>();
 		
-		for(int i = 0; i < tdl.size(); i++) {
-	    	String typeDepen = tdl.get(i).reln().toString();
+		for(int i = 1; i < tdl.size(); i++) {
+			TypedDependency tdl_i = tdl.get(i);
+	    	String typeDepen = tdl_i.reln().toString();
 	    	String subjWord = null, verbWord = null, objWord = null;
-	    	//verb
+	    	   		
+	    	//subj + verb
 	    	if( verb.contains(typeDepen) ){
-	    		subjWord = tdl.get(i).dep().originalText();
-	    		verbWord = tdl.get(i).gov().originalText();
+	    		//lemmatize words
+		    	List<String> lem = cn.lemmatize(sentence);
+		    	String govRoot = lem.get(tdl_i.gov().index()-1), depRoot = lem.get(tdl_i.dep().index()-1);
+	    		
+	    		subjWord = depRoot;
+	    		verbWord = govRoot;
 	    	}
-	    	//obj
+	    	//verb + obj
 	    	if( obj.contains(typeDepen) ) {
-	    		if(( typeDepen.equals("nmod") || typeDepen.equals("xcomp") ) && !extVerb.equals(tdl.get(i).gov().originalText())) {
+	    		
+	    		if(( typeDepen.equals("nmod") || typeDepen.equals("xcomp") ) && !extVerb.equals(tdl_i.gov().originalText())) {
 	    			continue;
 	    		}
-	    		verbWord = tdl.get(i).gov().originalText();
-	    		objWord = tdl.get(i).dep().originalText();
+	    		//lemmatize words
+		    	List<String> lem = cn.lemmatize(sentence);
+		    	String govRoot = lem.get(tdl_i.gov().index()-1), depRoot = lem.get(tdl_i.dep().index()-1);
+	    		
+	    		verbWord = govRoot;
+	    		objWord = depRoot;
 	    		pw2.println("verb > " + verbWord + " obj > " + objWord);
 	    		
 	    		System.out.println(verbWord + " " + objWord);
@@ -77,9 +89,8 @@ public class DetectPhishingMail {
 	    		//}
 	    	}
 	    }
-		/*
-		 * insert verb and object to table "inputword"
-		 */
+		
+		//insert verb and object to table "inputword"
 		if(save_mode == 1) db.DBadd("inputword",verbList, objList);
 	}
 
@@ -120,6 +131,9 @@ public class DetectPhishingMail {
 		return listedTaggedString.get(num).toString().toLowerCase();
 	}
 
+	/*
+	 *  you + moral
+	 */
 	private static boolean isSuggestion(LexicalizedParser lp, String sentence,
 			ArrayList<TaggedWord> listedTaggedString) {
 		//
@@ -170,7 +184,9 @@ public class DetectPhishingMail {
 		}
 		return false;
 	}
-
+/*
+ * including desire verb
+ */
 	private static boolean isDesireExpression(List<TypedDependency> tdl) {
 		for (int i = 0; i < tdl.size(); i++) {
 			String extractElement = tdl.get(i).reln().toString();
@@ -187,6 +203,9 @@ public class DetectPhishingMail {
 		return false;
 	}
 
+	/*
+	 * detecting command line.
+	 */
 	private static void detectCommand(LexicalizedParser lp, String sentence) throws IOException {
 		int sentLen = sentence.split(" ").length;
 		// if the sentence has only one word, go to the next sentence.
@@ -214,7 +233,7 @@ public class DetectPhishingMail {
 			if (sentence.toLowerCase().startsWith(specialWord[i])) {
 			//	System.out.println("It is imperative sentence.");
 				pw2.println(sentence);
-				searchKeyword(tdl, Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"), "");
+				searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"), "");
 				pw2.println();
 			//	System.out.println();
 				return;
@@ -225,14 +244,14 @@ public class DetectPhishingMail {
 		String imperVerb = isImperative(parse);
 		if (imperVerb != null) {
 			pw2.println(sentence);
-			searchKeyword(tdl, Arrays.asList( "nsubj", "subjpass"), Arrays.asList("dobj","nmod","xcomp"),imperVerb);
+			searchKeyword(tdl, sentence,Arrays.asList( "nsubj", "subjpass"), Arrays.asList("dobj","nmod","xcomp"),imperVerb);
 			pw2.println();
 		}
 
 		// 2. extracting suggestion sentence
 		else if (isSuggestion(lp, sentence, listedTaggedString)) {
 			pw2.println(sentence);
-			searchKeyword(tdl, Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
+			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
 			pw2.println();
 		}
 
@@ -240,7 +259,7 @@ public class DetectPhishingMail {
 		else if (isDesireExpression(tdl)) {
 			// ¿å¸Á
 			pw2.println(sentence);
-			searchKeyword(tdl, Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
+			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
 			pw2.println();
 		}
 		//System.out.println();
@@ -312,9 +331,9 @@ public class DetectPhishingMail {
 					FileReader fr = null;
 					BufferedReader br = null;
 					try {
-				    	//fr = new FileReader(fileName + number + ".txt"); 
+				    	fr = new FileReader(fileName + number + ".txt"); 
 						
-				    	fr = new FileReader("C:/Users/kimhyeji/Downloads/stanford-parser-full-2017-06-09/stanford-parser-full-2017-06-09/src/result1_extract_none_line.txt");
+				    	//fr = new FileReader("C:/Users/kimhyeji/Downloads/stanford-parser-full-2017-06-09/stanford-parser-full-2017-06-09/src/result1_extract_none_line.txt");
 				    	br = new BufferedReader(fr);
 						String value;
 						while ((value = br.readLine()) != null) {
