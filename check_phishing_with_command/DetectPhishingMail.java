@@ -43,6 +43,9 @@ public class DetectPhishingMail {
 	private static PrintWriter pw2;
 	private static CoreNLP cn = new CoreNLP();
 	private static MakeBlacklist BL = new MakeBlacklist();
+
+	private static int r_count = 0;
+	private static int w_count = 0;
 	
 	
 	private static boolean checkDBBlacklist(String verb, String obj) {
@@ -50,11 +53,11 @@ public class DetectPhishingMail {
 	}
 	private static boolean checkBlacklist(String verb, String obj) {
 		if(BL.checkBlacklist(verb, obj)) {
-			System.out.println("Spam mail!");
+			//System.out.println(verb + ' ' + obj + ">> Spam mail!");
 			return true;
 		}
 		else {
-			System.out.println("nope");
+			//System.out.println("nope");
 			return false;
 		}
 	}
@@ -65,8 +68,7 @@ public class DetectPhishingMail {
 	 */
 	private static void searchKeyword(List<TypedDependency> tdl, String sentence, List<String> verb ,List<String> obj, String extVerb) {
 	    ArrayList<String> verbList = new ArrayList<String>(), objList = new ArrayList<String>();
-		System.out.println("command!");
-	    if(save_mode == 2) {
+		if(save_mode == 3) {
 	    	pw2.println(sentence);
 	    	pw2.println();
 	    }
@@ -98,16 +100,23 @@ public class DetectPhishingMail {
 	    		
 	    		verbWord = govRoot;
 	    		objWord = depRoot;
-	    		if(save_mode == 2)	pw2.println("verb > " + verbWord + " obj > " + objWord);
+	    		if(save_mode == 3)	pw2.println("verb > " + verbWord + " obj > " + objWord);
 	    		
-	    		System.out.println(verbWord + " " + objWord);
 	    		verbList.add(verbWord);
 	    		objList.add(objWord);
 	    		
-	    		checkBlacklist(verbWord, objWord);
+	    		//this is scam
+	    		if(checkBlacklist(verbWord, objWord) && save_mode == 2) {
+	    			pw2.println(sentence);
+	    	    	pw2.println();
+	    	    	r_count++;
+	    	    	return;
+	    		}
 	    	}
+
 	    }
-		
+    	w_count++;
+    	
 		//insert verb and object to table "inputword"
 		if(save_mode == 1) db.DBadd("inputword",verbList, objList);
 	}
@@ -287,8 +296,8 @@ public class DetectPhishingMail {
 
 	public static void main(String[] args){
 		String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
-		String fileName = System.getProperty("user.dir") + "\\src\\data";
-		String number = "1000";
+		String fileLocate = System.getProperty("user.dir") + "\\src\\";
+		String fileName = "non_malicious";
 		LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);
 
 
@@ -319,15 +328,15 @@ public class DetectPhishingMail {
 				}
 				if(save_mode == 1) db = new DBConnection();
 		
-				if(save_mode == 2) {
+				if(save_mode > 1) {
 					try {
 						pw2 = new PrintWriter(new FileWriter(
-								fileName + "result_" + number + ".txt", true));
+								fileLocate + "result_"+fileName + ".txt", true));
 //						pw2 = new PrintWriter(new FileWriter(
 //						"c:/users/dyson/desktop/java_workspace/stanfordParser/extract_imperative_command.txt", true));
 
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
+						System.out.println("io error");
 						e1.printStackTrace();
 					}
 				}
@@ -341,7 +350,7 @@ public class DetectPhishingMail {
 						try {
 							detectCommand(lp, value);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
+							System.out.println("io error");
 							e.printStackTrace();
 						}
 					}
@@ -352,7 +361,7 @@ public class DetectPhishingMail {
 					FileReader fr = null;
 					BufferedReader br = null;
 					try {
-				    	fr = new FileReader(fileName + number + ".txt"); 
+				    	fr = new FileReader(fileLocate + fileName + ".txt"); 
 						
 				    	//fr = new FileReader("C:/Users/kimhyeji/Downloads/stanford-parser-full-2017-06-09/stanford-parser-full-2017-06-09/src/result1_extract_none_line.txt");
 				    	br = new BufferedReader(fr);
@@ -419,6 +428,7 @@ public class DetectPhishingMail {
 					scanner.close();
 			}
 		}
+		pw2.write("scam : " + r_count + " no scam : " + w_count +"All" +count);
 		pw2.close();
 	}
 

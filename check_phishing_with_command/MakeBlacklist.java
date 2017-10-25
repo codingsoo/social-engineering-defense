@@ -14,6 +14,8 @@ public class MakeBlacklist {
 	public static Map<String,Set<String>> objList;
 	public static WordNet wn = new WordNet();
 	
+	public static String NUMBER = "_NUMBER_";
+	
 	public MakeBlacklist() {
 		try {
 			readBlacklist();
@@ -21,7 +23,7 @@ public class MakeBlacklist {
 			System.out.println("MakeBlacklist open fail");
 		}
 	}
-	public static boolean checkBlacklist(String verbWord, String objWord){
+	public boolean checkBlacklist(String verbWord, String objWord){
 	
 		if(!verb.containsKey(verbWord)) {
 			//System.out.println("no key");
@@ -33,6 +35,10 @@ public class MakeBlacklist {
 			//System.out.println(UnionFind(verb.get(verbWord)) + "null value");
 			return false;
 			}
+		
+		//obj가 numeric인 경우
+		if(isNumber(objWord) && temp.contains(NUMBER)) return true; 
+		
 		if(!temp.contains(objWord)) {			
 			//System.out.println(UnionFind(verb.get(verbWord)) + "no value");
 			return false;
@@ -54,8 +60,6 @@ public class MakeBlacklist {
 				String[] data = s.split(" ");
 
 				if(data.length < 2) continue;
-				
-				System.out.println(data[0]);
 				//null인 경우 사전에 없는 단어
 				String val = data[1];
 				if(data[1].equals(null)) val = data[0];
@@ -71,6 +75,9 @@ public class MakeBlacklist {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	public static boolean isNumber(String s) {
+		return s.matches(".*\\d.*");
 	}
 	/*
 	 * Reading text data (verb obj)
@@ -94,12 +101,18 @@ public class MakeBlacklist {
 				
 				if(obj.containsKey(key)) {
 					Set<String> temp = obj.get(key);
-					temp.add(value);
+
+					//if obj is numeric
+					if(isNumber(value)) temp.add(NUMBER);
+					else temp.add(value);
 					obj.put(key,temp);
 				}
 				else {
 					Set<String> l = new HashSet<String>();
-					l.add(value);
+					
+					//if obj is numeric
+					if(isNumber(value)) l.add(NUMBER);
+					else l.add(value);
 					obj.put(key,l);
 				}
 			}
@@ -201,7 +214,7 @@ public class MakeBlacklist {
 			String key = entry.getKey();
 			String val = entry.getValue();
 			if(key.equals(val)) continue;
-			if(obj.get(val) != null)obj.get(val).addAll(obj.get(key));
+			if(obj.get(val) != null && obj.get(key) != null)obj.get(val).addAll(obj.get(key));
 			obj.remove(key);
 		}
 		
@@ -218,14 +231,23 @@ public class MakeBlacklist {
 			entry.setValue(val);
 		}
 	}
+	public static void saveBlacklist() {
+		readData();
+		makeVerbList();
+		makeObjList();
+		saveData();
+	}
 	public static void makeObjTrie() {
 	}
 	public static void makeVerbTrie() {
 	}
-/*
+
+	/*
 	public static void main(String[] args) {
-		readBlacklist();
-		checkBlacklist("make","stack");
+		
+		saveBlacklist();
+		//readBlacklist();
+		//checkBlacklist("make","stack");
+	}
 	*/
-	
 }
