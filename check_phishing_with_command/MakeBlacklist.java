@@ -16,9 +16,9 @@ public class MakeBlacklist {
 	
 	public static String NUMBER = "_NUMBER_";
 	
-	public MakeBlacklist() {
+	public MakeBlacklist(String blackListLocate) {
 		try {
-			readBlacklist();
+			readBlacklist(blackListLocate);
 		} catch(Exception e) {
 			System.out.println("MakeBlacklist open fail");
 		}
@@ -48,12 +48,11 @@ public class MakeBlacklist {
 	/*
 	 * read saved blacklist
 	 */
-	public static void readBlacklist() {
-		String fileName = System.getProperty("user.dir") + "\\src";
+	public static void readBlacklist(String fileLocate) {
 		FileReader fr = null;
     	BufferedReader br = null;
 		try {
-			fr = new FileReader(fileName + "\\result.txt");
+			fr = new FileReader(fileLocate);
 			br = new BufferedReader(fr);
 			String s;
 			while((s = br.readLine()) != null && !s.equals("obj")) {
@@ -82,12 +81,11 @@ public class MakeBlacklist {
 	/*
 	 * Reading text data (verb obj)
 	 */
-	public static void readData() {
-		String fileName = System.getProperty("user.dir") + "\\src";
+	public static void readData(String fileLocate) {
 		FileReader fr = null;
     	BufferedReader br = null;
 		try {
-			fr = new FileReader(fileName + "\\data.txt");
+			fr = new FileReader(fileLocate);
 			br = new BufferedReader(fr);
 			String s;
 			while((s = br.readLine()) != null) {
@@ -124,12 +122,11 @@ public class MakeBlacklist {
 	/*
 	 * save blacklist
 	 */
-	public static void saveData() {
-		String fileName = System.getProperty("user.dir") + "\\src";
+	public static void saveData(String fileLocate) {
 		FileWriter wr = null;
     	BufferedWriter br = null;
 		try {
-			wr = new FileWriter(fileName + "\\result.txt");
+			wr = new FileWriter(fileLocate);
 			br = new BufferedWriter(wr);
 			for (Map.Entry<String, String> entry : verb.entrySet()) {
 				br.write(entry.getKey() + " " + entry.getValue() + "\r\n");
@@ -188,9 +185,10 @@ public class MakeBlacklist {
 	    	String key = entry.getKey();
 	    	
 	    	if(verb.get(key) != null) continue;
+	    	
+	    	
 	    	ArrayList<String> synList = isSynonym(key, verb.keySet());
 	    	if(synList == null) {
-
     			continue;
 	    	}
 	    	
@@ -219,6 +217,7 @@ public class MakeBlacklist {
 		}
 		
 		//add synonyms
+		/*
 		for(Map.Entry<String, Set<String>> entry : obj.entrySet()) {
 			Set<String> val = entry.getValue();
 			Set<String> temp = new HashSet<String>();
@@ -230,24 +229,18 @@ public class MakeBlacklist {
 			val.addAll(temp);
 			entry.setValue(val);
 		}
+		*/
 	}
-	public static void saveBlacklist() {
-		readData();
+	public static void saveBlacklist(String dataFileLocate, String saveFileLocate) {
+		readData(dataFileLocate);
 		makeVerbList();
 		makeObjList();
-		saveData();
+		saveData(saveFileLocate);
+		System.out.println(" - * - Finished saving blacklist! - * - ");
 	}
 	public static void makeObjTrie() {
 	}
 	public static void makeVerbTrie() {
 	}
-
-	/*
-	public static void main(String[] args) {
-		
-		saveBlacklist();
-		//readBlacklist();
-		//checkBlacklist("make","stack");
-	}
-	*/
+	
 }

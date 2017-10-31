@@ -38,7 +38,6 @@ class WordNet {
 	}
 	
 	ArrayList<String> getSynonyms(String strWord, POS pos){
-		System.out.print(strWord + " >> ");
 		IIndexWord idxWord = dict.getIndexWord(strWord, pos);
 		ArrayList<String> result = new ArrayList<String>();
 		

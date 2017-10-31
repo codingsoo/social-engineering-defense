@@ -37,99 +37,64 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 
 public class DetectPhishingMail {
-	private static DBConnection db;
 	private static String[] specialWord;
 	private static int save_mode;
 	private static PrintWriter pw2;
-	private static CoreNLP cn = new CoreNLP();
-	private static MakeBlacklist BL = new MakeBlacklist();
-
-	private static int r_count = 0;
-	private static int w_count = 0;
 	
+	private static String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
+	private static String fileLocate = System.getProperty("user.dir") + "\\src\\";
 	
-	private static boolean checkDBBlacklist(String verb, String obj) {
-		return db.DBcheck("blacklist", verb, obj);
-	}
-	private static boolean checkBlacklist(String verb, String obj) {
-		if(BL.checkBlacklist(verb, obj)) {
-			//System.out.println(verb + ' ' + obj + ">> Spam mail!");
-			return true;
-		}
-		else {
-			//System.out.println("nope");
-			return false;
-		}
-	}
+	private static CoreNLP cn = new CoreNLP(); 	//Use Wordnet with jwi
+	private static MakeBlacklist BL = new MakeBlacklist(fileLocate + "result.txt");  //Manage blacklist
 
+	
+	/*
+	 * Check if a single pair of verb and obj is included the pair in blacklist
+	 */
+	private static boolean IsBlackListPair(String verb, String obj) {
+		return BL.checkBlacklist(verb, obj);
+	}
 
 	/*
-	 * Extracting phishing keywords
+	 * Check if a sentence is included the words in blacklist
 	 */
-	private static void searchKeyword(List<TypedDependency> tdl, String sentence, List<String> verb ,List<String> obj, String extVerb) {
-	    ArrayList<String> verbList = new ArrayList<String>(), objList = new ArrayList<String>();
-		if(save_mode == 3) {
-	    	pw2.println(sentence);
-	    	pw2.println();
-	    }
-	
-	    
-		for(int i = 1; i < tdl.size(); i++) {
+	private static boolean IsBlackListSent(List<TypedDependency> tdl, String sentence, List<String> obj, List<String> extVerb) {
+	    for(int i = 0; i < tdl.size(); i++) {
 			TypedDependency tdl_i = tdl.get(i);
 	    	String typeDepen = tdl_i.reln().toString();
-	    	String subjWord = null, verbWord = null, objWord = null;
-	    	   		
-	    	//subj + verb
-	    	if( verb.contains(typeDepen) ){
-	    		//lemmatize words
-		    	List<String> lem = cn.lemmatize(sentence);
-		    	String govRoot = lem.get(tdl_i.gov().index()-1), depRoot = lem.get(tdl_i.dep().index()-1);
-	    		
-	    		subjWord = depRoot;
-	    		verbWord = govRoot;
-	    	}
-	    	//verb + obj
+	    	
+	    	//index 0 is just root, for matching index with sentence
+	    	if(tdl_i.gov().index() == 0) continue;	    	   		
+	    	
+	    	//Extract the keyword pair (verb,obj)
 	    	if( obj.contains(typeDepen) ) {
 	    		
-	    		if(( typeDepen.equals("nmod") || typeDepen.equals("xcomp") ) && !extVerb.equals(tdl_i.gov().originalText())) {
+	    		//Check only extracted verb when the type dependency is nmod or xcomp
+	    		if(( typeDepen.equals("nmod") || typeDepen.equals("xcomp") ) && !extVerb.contains(tdl_i.gov().originalText())) {
 	    			continue;
 	    		}
-	    		//lemmatize words
+	    		
+	    		//Lemmatize sentence
 		    	List<String> lem = cn.lemmatize(sentence);
-		    	String govRoot = lem.get(tdl_i.gov().index()-1), depRoot = lem.get(tdl_i.dep().index()-1);
+		    	String verbWord = lem.get(tdl_i.gov().index()-1);
+		    	String objWord = lem.get(tdl_i.dep().index()-1);
 	    		
-	    		verbWord = govRoot;
-	    		objWord = depRoot;
-	    		if(save_mode == 3)	pw2.println("verb > " + verbWord + " obj > " + objWord);
-	    		
-	    		verbList.add(verbWord);
-	    		objList.add(objWord);
-	    		
-	    		//this is scam
-	    		if(checkBlacklist(verbWord, objWord) && save_mode == 2) {
-	    			pw2.println(sentence);
-	    	    	pw2.println();
-	    	    	r_count++;
-	    	    	return;
-	    		}
+	    		//Judge if this sentence is malicious
+	    		if(IsBlackListPair(verbWord, objWord)) return true;
 	    	}
-
 	    }
-    	w_count++;
-    	
-		//insert verb and object to table "inputword"
-		if(save_mode == 1) db.DBadd("inputword",verbList, objList);
+		return false;
 	}
 
 	/*
-	 * Extracting command sentence
+	 * Check if the parse if imperative
+	 * Return : root verbs
 	 */
-	// "(@VP=verb (< S !> SBAR) !$,,@NP)"
-	// (@VP=verb (< S !> SBAR) | (< S & > S & < NN) !$,,@NP)
-	private static String isImperative(Tree parse) {
+	private static List<String> isImperative(Tree parse) {
 		TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
 		TregexMatcher n = noNP.matcher(parse);
-		
+		ArrayList<String> VerbSet = new ArrayList<String>();
+				
 		while (n.find()) {
 			String match = n.getMatch().firstChild().label().toString();
 			Tree temp = n.getMatch().firstChild().firstChild();
@@ -143,15 +108,15 @@ public class DetectPhishingMail {
 				continue;
 			}
 			
+			//Find the last node within overlapped "VP" nodes. 
 			while(temp.firstChild() != null) {
 				temp = temp.firstChild();
 			}
 			
-			// imperative sentence
-			//System.out.println("It is imperative sentence.");
-			return temp.toString();
+			//Store root verbs
+			VerbSet.add(temp.toString());
 		}
-		return null;
+		return VerbSet;
 	}
 
 	private static String extractOneWord(int num, ArrayList<TaggedWord> listedTaggedString) {
@@ -197,6 +162,9 @@ public class DetectPhishingMail {
 		return false;
 	}
 
+	/*
+	 * Find the sentence formed "You + moral"
+	 */
 	private static boolean isSuggestion(Tree parse) {
 		TregexPattern sug = TregexPattern.compile("((@VP=md > S ) $,,@NP=you )");
 		TregexMatcher s = sug.matcher(parse);
@@ -205,12 +173,12 @@ public class DetectPhishingMail {
 			String y = s.getNode("you").getChild(0).getChild(0).value();
 
 			if (y.equals("you") || y.equals("You") || y.equals("YOU")) {
-				//System.out.println("It is suggestion sentence.");
 				return true;
 			}
 		}
 		return false;
 	}
+	
 /*
  * including desire verb
  */
@@ -231,59 +199,58 @@ public class DetectPhishingMail {
 	}
 
 	/*
-	 * detecting command line.
+	 * Detect the command line.
 	 */
-	private static void detectCommand(LexicalizedParser lp, String sentence) throws IOException {
+	private static boolean detectCommand(LexicalizedParser lp, String sentence) throws IOException {
 		int sentLen = sentence.split(" ").length;
 		// if the sentence has only one word, go to the next sentence.
 		if (sentLen > 50 || sentLen < 2) {
-			return;
+			return false;
 		}
 		
-		// penn tree
+		// Penn tree
 		TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "");
 		Tokenizer<CoreLabel> tok = tokenizerFactory.getTokenizer(new StringReader(sentence));
 		List<CoreLabel> rawWords = tok.tokenize();
 		Tree parse = lp.apply(rawWords);
 		ArrayList<TaggedWord> listedTaggedString = parse.taggedYield();
 
-		// dependency
+		// Dependency
 		TreebankLanguagePack tlp = lp.treebankLanguagePack(); // PennTreebankLanguagePack for English
 		GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
 		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
 		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
 
-		//System.out.println("<<< " + sentence + " >>>");
-
-		// 0. Hope, Kindly, Apply, Reply exception process
+		
+		//Extract all kind of imperative sentence.
+		
+		// Hope, Kindly, Apply, Reply exception process
 		for (int i = 0; i < 4; i++) {
 			if (sentence.toLowerCase().startsWith(specialWord[i])) {
-				searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"), "");
-				return;
+				IsBlackListSent(tdl, sentence, Arrays.asList("dobj"), Arrays.asList(specialWord));
+				return true;
 			}
 		}
 
-		// 1. extracting imperative sentence
-		String imperVerb = isImperative(parse);
-		if (imperVerb != null) {
-			searchKeyword(tdl, sentence,Arrays.asList( "nsubj", "subjpass"), Arrays.asList("dobj","nmod","xcomp"),imperVerb);
-			
+		// extracting imperative sentence
+		List<String> imperVerb = isImperative(parse);
+		if (!imperVerb.isEmpty()) {
+			IsBlackListSent(tdl, sentence, Arrays.asList("dobj","nmod","xcomp"),imperVerb);
+			return true;
 		}
 
-		// 2. extracting suggestion sentence
-		else if (isSuggestion(lp, sentence, listedTaggedString)) {
-			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
+		// extracting suggestion sentence and desire expression sentence
+		if (isSuggestion(lp, sentence, listedTaggedString) || isDesireExpression(tdl)) {
+			IsBlackListSent(tdl, sentence, Arrays.asList("dobj"),imperVerb);
+			return true;
 		}
-
-		// 3. extracting sentence including desire expression
-		else if (isDesireExpression(tdl)) {
-			// 욕망
-			searchKeyword(tdl, sentence,Arrays.asList("nsubj", "subjpass"), Arrays.asList("dobj"),"");
-		}
-		//System.out.println();
+		return false;
 	}
 
-	public static List<String> readArray(JsonReader reader) throws IOException {
+	/*
+	 * Read sentence through JsonReader
+	 */
+	public static List<String> readJsonArray(JsonReader reader) throws IOException {
 		List<String> contents = new ArrayList<String>();
 
 		reader.beginArray();
@@ -294,9 +261,8 @@ public class DetectPhishingMail {
 		return contents;
 	}
 
+	
 	public static void main(String[] args){
-		String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
-		String fileLocate = System.getProperty("user.dir") + "\\src\\";
 		String fileName = "non_malicious";
 		LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);
 
@@ -312,7 +278,7 @@ public class DetectPhishingMail {
 			Scanner scanner = null;
 			try {
 				scanner = new Scanner(System.in);
-				System.out.println("Select the input method\n 1: text input 2: text File 3:JSON File  >> ");
+				System.out.println("Select the input method\n 1: text input 2: text File 3:JSON File 4:Make Black List >> ");
 				int inputMethod = scanner.nextInt();
 				
 				while(true) {
@@ -326,14 +292,11 @@ public class DetectPhishingMail {
 					}
 					break;
 				}
-				if(save_mode == 1) db = new DBConnection();
 		
 				if(save_mode > 1) {
 					try {
 						pw2 = new PrintWriter(new FileWriter(
-								fileLocate + "result_"+fileName + ".txt", true));
-//						pw2 = new PrintWriter(new FileWriter(
-//						"c:/users/dyson/desktop/java_workspace/stanfordParser/extract_imperative_command.txt", true));
+								fileLocate + "result_"+fileName + "_wrong.txt", true));
 
 					} catch (IOException e1) {
 						System.out.println("io error");
@@ -363,7 +326,6 @@ public class DetectPhishingMail {
 					try {
 				    	fr = new FileReader(fileLocate + fileName + ".txt"); 
 						
-				    	//fr = new FileReader("C:/Users/kimhyeji/Downloads/stanford-parser-full-2017-06-09/stanford-parser-full-2017-06-09/src/result1_extract_none_line.txt");
 				    	br = new BufferedReader(fr);
 						String value;
 						while ((value = br.readLine()) != null) {
@@ -400,13 +362,10 @@ public class DetectPhishingMail {
 					try {
 						JsonReader reader = new JsonReader(new FileReader(fileName + ".json"));
 			    		
-						//JsonReader reader = new JsonReader(new FileReader(
-						//		"c:/Users/dyson/Desktop/java_workspace/stanfordParser/sentence_tokenized_scam2.json"));
-						Gson gson = new GsonBuilder().create();
 						reader.beginObject();
 						while (reader.hasNext()) {
 							String name = reader.nextName();
-							List<String> sentences = readArray(reader);
+							List<String> sentences = readJsonArray(reader);
 							for (String value : sentences) {
 								value = WordUtils.capitalizeFully(value, new char[] { '.' });
 								//System.out.println(++count);
@@ -419,7 +378,9 @@ public class DetectPhishingMail {
 						e.printStackTrace();
 					}
 					break;
-
+				case 4:
+					BL.saveBlacklist(fileLocate + "data.txt", fileLocate + "result.txt");
+					break;
 				default:
 					System.out.println("wrong input");
 				}
@@ -428,8 +389,9 @@ public class DetectPhishingMail {
 					scanner.close();
 			}
 		}
-		pw2.write("scam : " + r_count + " no scam : " + w_count +"All" +count);
-		pw2.close();
+		if(save_mode == 2) {
+			pw2.close();
+		}
 	}
 
 }
