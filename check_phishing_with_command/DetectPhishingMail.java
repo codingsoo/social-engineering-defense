@@ -110,7 +110,7 @@ public class DetectPhishingMail {
 	}
 
 	/*
-	 * Check if the parse if imperative
+	 * Check if the parse is imperative
 	 * Return : root verbs
 	 */
 	private List<String> isImperative(Tree parse) {
@@ -147,7 +147,7 @@ public class DetectPhishingMail {
 	}
 
 /*
- * ¡÷ºÆ ¥ﬁæ∆¡÷ººøÎ
+ * Ï£ºÏÑù Îã¨ÏïÑÏ£ºÏÑ∏Ïö©
  *  you + moral
  */
 	private boolean isSuggestion(LexicalizedParser lp, String sentence,
@@ -204,7 +204,7 @@ public class DetectPhishingMail {
 	}
 	
 /*
- * ¡÷ºÆ¥ﬁ±‚
+ * Ï£ºÏÑùÎã¨
  * including desire verb
  */
 	private boolean isDesireExpression(List<TypedDependency> tdl) {
@@ -246,9 +246,9 @@ public class DetectPhishingMail {
 		GrammaticalStructure gs = gsf.newGrammaticalStructure(parse);
 		List<TypedDependency> tdl = gs.typedDependenciesCCprocessed();
 
-		
-		//Extract all kind of imperative sentence.
-		
+		/*
+		* Extract all kind of imperative sentence.
+		*/
 		// Hope, Kindly, Apply, Reply exception process
 		for (int i = 0; i < 4; i++) {
 			if (sentence.toLowerCase().startsWith(specialWord[i])) {
