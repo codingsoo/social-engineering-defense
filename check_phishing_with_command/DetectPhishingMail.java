@@ -277,16 +277,16 @@ public class DetectPhishingMail {
 		if(result) {
 			rCount++;
 			if(writer != null) {
-				System.out.println(sent);
-				writer.write(sent);
-				writer.write('\n');
+				/* ************************ */
+				writer.println(sent + '\n');
 			}
 			return true;
 		}
 		else {
 			wCount++;
 			if(wrong_writer != null) {
-				wrong_writer.write(sent);
+				/* ************************ */
+				wrong_writer.println(sent + '\n');
 			}
 			return false;
 		}
@@ -316,7 +316,6 @@ public class DetectPhishingMail {
 			String value = scanner.nextLine();
 			try {
 				if(value.equals("exit")) return;
-				
 				checkMalicious(detectCommand(lp, value), value);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -418,7 +417,6 @@ public class DetectPhishingMail {
 				e1.printStackTrace();
 			}
 		}
-				
 		//line input mode
 		if(sentDataFile == null) {
 			System.out.println(" test sentence >> ");
@@ -441,6 +439,8 @@ public class DetectPhishingMail {
 		}
 		
 		if(writer != null) {
+			/* ************************ */
+			writer.println(rCount + ' ' + wCount);
 			writer.close();
 			wrong_writer.close();
 		}
@@ -450,7 +450,6 @@ public class DetectPhishingMail {
 		DetectPhishingMail d = new DetectPhishingMail();
 		
 		//verb+obj File or null , Blacklist File , json or txt or null (input) , result or null 
-		d.check(null,"result.txt","malicious.txt","result_maliciouss.txt");
-
+		d.check(null,"result.txt","malicious.txt","new_result.txt");
 	}
 }
