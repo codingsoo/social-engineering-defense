@@ -14,8 +14,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
-
-
+import java.io.File;
 
 import edu.stanford.nlp.ling.TaggedWord;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -37,28 +36,52 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 
 public class DetectPhishingMail {
-	private static String[] specialWord;
-	private static int save_mode;
-	private static PrintWriter pw2;
+	private String fileLocate;
+	private String[] specialWord;
+	private PrintWriter writer;
+	private PrintWriter wrong_writer;
 	
-	private static String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
-	private static String fileLocate = System.getProperty("user.dir") + "\\src\\";
+	private LexicalizedParser lp;	
+	private String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 	
-	private static CoreNLP cn = new CoreNLP(); 	//Use Wordnet with jwi
-	private static MakeBlacklist BL = new MakeBlacklist(fileLocate + "result.txt");  //Manage blacklist
+	private CoreNLP cn; 	
+	private MakeBlacklist BL;
 
-	
+	private int rCount,wCount;
+
+	DetectPhishingMail(){
+		rCount = 0;
+		wCount = 0;
+		
+		writer = null;
+		wrong_writer = null;
+		
+		specialWord = new String[4];
+		specialWord[0] = "hope";
+		specialWord[1] = "reply";
+		specialWord[2] = "apply";	
+		specialWord[3] = "kindly";
+		
+		lp = LexicalizedParser.loadModel(parserModel);
+		fileLocate = System.getProperty("user.dir") + "\\src\\";
+		
+		//Use Wordnet with jwi
+		cn = new CoreNLP();
+		 
+		//Manage blacklist
+		BL = new MakeBlacklist(fileLocate + "result.txt");  
+	}
 	/*
 	 * Check if a single pair of verb and obj is included the pair in blacklist
 	 */
-	private static boolean IsBlackListPair(String verb, String obj) {
+	private boolean IsBlackListPair(String verb, String obj) {
 		return BL.checkBlacklist(verb, obj);
 	}
 
 	/*
 	 * Check if a sentence is included the words in blacklist
 	 */
-	private static boolean IsBlackListSent(List<TypedDependency> tdl, String sentence, List<String> obj, List<String> extVerb) {
+	private boolean IsBlackListSent(List<TypedDependency> tdl, String sentence, List<String> obj, List<String> extVerb) {
 	    for(int i = 0; i < tdl.size(); i++) {
 			TypedDependency tdl_i = tdl.get(i);
 	    	String typeDepen = tdl_i.reln().toString();
@@ -90,7 +113,7 @@ public class DetectPhishingMail {
 	 * Check if the parse if imperative
 	 * Return : root verbs
 	 */
-	private static List<String> isImperative(Tree parse) {
+	private List<String> isImperative(Tree parse) {
 		TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
 		TregexMatcher n = noNP.matcher(parse);
 		ArrayList<String> VerbSet = new ArrayList<String>();
@@ -119,14 +142,15 @@ public class DetectPhishingMail {
 		return VerbSet;
 	}
 
-	private static String extractOneWord(int num, ArrayList<TaggedWord> listedTaggedString) {
+	private String extractOneWord(int num, ArrayList<TaggedWord> listedTaggedString) {
 		return listedTaggedString.get(num).toString().toLowerCase();
 	}
 
-	/*
-	 *  you + moral
-	 */
-	private static boolean isSuggestion(LexicalizedParser lp, String sentence,
+/*
+ * 주석 달아주세용
+ *  you + moral
+ */
+	private boolean isSuggestion(LexicalizedParser lp, String sentence,
 			ArrayList<TaggedWord> listedTaggedString) {
 		//
 		for (int i = 0; i < listedTaggedString.size() - 1; i++) {
@@ -165,7 +189,7 @@ public class DetectPhishingMail {
 	/*
 	 * Find the sentence formed "You + moral"
 	 */
-	private static boolean isSuggestion(Tree parse) {
+	private boolean isSuggestion(Tree parse) {
 		TregexPattern sug = TregexPattern.compile("((@VP=md > S ) $,,@NP=you )");
 		TregexMatcher s = sug.matcher(parse);
 
@@ -180,9 +204,10 @@ public class DetectPhishingMail {
 	}
 	
 /*
+ * 주석달기
  * including desire verb
  */
-	private static boolean isDesireExpression(List<TypedDependency> tdl) {
+	private boolean isDesireExpression(List<TypedDependency> tdl) {
 		for (int i = 0; i < tdl.size(); i++) {
 			String extractElement = tdl.get(i).reln().toString();
 			String oneWord = tdl.get(i).gov().value().toString().toLowerCase();
@@ -201,7 +226,7 @@ public class DetectPhishingMail {
 	/*
 	 * Detect the command line.
 	 */
-	private static boolean detectCommand(LexicalizedParser lp, String sentence) throws IOException {
+	private boolean detectCommand(LexicalizedParser lp, String sentence) throws IOException {
 		int sentLen = sentence.split(" ").length;
 		// if the sentence has only one word, go to the next sentence.
 		if (sentLen > 50 || sentLen < 2) {
@@ -227,30 +252,51 @@ public class DetectPhishingMail {
 		// Hope, Kindly, Apply, Reply exception process
 		for (int i = 0; i < 4; i++) {
 			if (sentence.toLowerCase().startsWith(specialWord[i])) {
-				IsBlackListSent(tdl, sentence, Arrays.asList("dobj"), Arrays.asList(specialWord));
-				return true;
+				return IsBlackListSent(tdl, sentence, Arrays.asList("dobj"), Arrays.asList(specialWord));
 			}
 		}
 
 		// extracting imperative sentence
 		List<String> imperVerb = isImperative(parse);
 		if (!imperVerb.isEmpty()) {
-			IsBlackListSent(tdl, sentence, Arrays.asList("dobj","nmod","xcomp"),imperVerb);
-			return true;
+			return IsBlackListSent(tdl, sentence, Arrays.asList("dobj","nmod","xcomp"),imperVerb);
 		}
 
 		// extracting suggestion sentence and desire expression sentence
 		if (isSuggestion(lp, sentence, listedTaggedString) || isDesireExpression(tdl)) {
-			IsBlackListSent(tdl, sentence, Arrays.asList("dobj"),imperVerb);
-			return true;
+			return IsBlackListSent(tdl, sentence, Arrays.asList("dobj"),imperVerb);
 		}
 		return false;
 	}
-
+	
+	
+	/*
+	 * You can check or write something with result.
+	 */
+	private boolean checkMalicious(boolean result, String sent) {
+		if(result) {
+			rCount++;
+			if(writer != null) {
+				System.out.println(sent);
+				writer.write(sent);
+				writer.write('\n');
+			}
+			return true;
+		}
+		else {
+			wCount++;
+			if(wrong_writer != null) {
+				wrong_writer.write(sent);
+			}
+			return false;
+		}
+	}
+	
+	
 	/*
 	 * Read sentence through JsonReader
 	 */
-	public static List<String> readJsonArray(JsonReader reader) throws IOException {
+	public List<String> readJsonArray(JsonReader reader) throws IOException {
 		List<String> contents = new ArrayList<String>();
 
 		reader.beginArray();
@@ -260,138 +306,151 @@ public class DetectPhishingMail {
 		reader.endArray();
 		return contents;
 	}
-
 	
-	public static void main(String[] args){
-		String fileName = "non_malicious";
-		LexicalizedParser lp = LexicalizedParser.loadModel(parserModel);
-
-
-		int count = 0;
-		specialWord = new String[4];
-		specialWord[0] = "hope";
-		specialWord[1] = "reply";
-		specialWord[2] = "apply";	
-		specialWord[3] = "kindly";
-
-		if (args.length == 0) {
-			Scanner scanner = null;
+	/*
+	 * Read sentences from user input. 
+	 */
+	public void readTextLine() {
+		Scanner scanner = new Scanner(System.in);
+		while (scanner.hasNext()) {
+			String value = scanner.nextLine();
 			try {
-				scanner = new Scanner(System.in);
-				System.out.println("Select the input method\n 1: text input 2: text File 3:JSON File 4:Make Black List >> ");
-				int inputMethod = scanner.nextInt();
+				if(value.equals("exit")) return;
 				
-				while(true) {
-					
-					try {
-						System.out.println("0: non-save mode  1: data save mode  2: text file save mode >> ");
-						save_mode = scanner.nextInt();
-					} catch(Exception e) {
-						scanner.nextLine();
-						continue;
-					}
-					break;
-				}
-		
-				if(save_mode > 1) {
-					try {
-						pw2 = new PrintWriter(new FileWriter(
-								fileLocate + "result_"+fileName + "_wrong.txt", true));
-
-					} catch (IOException e1) {
-						System.out.println("io error");
-						e1.printStackTrace();
-					}
-				}
-				
-				switch (inputMethod) {
-
-				// standard text input
-				case 1:
-					while (scanner.hasNext()) {
-						String value = scanner.nextLine();
-						try {
-							detectCommand(lp, value);
-						} catch (IOException e) {
-							System.out.println("io error");
-							e.printStackTrace();
-						}
-					}
-					break;
-
-				// text input file
-				case 2:
-					FileReader fr = null;
-					BufferedReader br = null;
-					try {
-				    	fr = new FileReader(fileLocate + fileName + ".txt"); 
-						
-				    	br = new BufferedReader(fr);
-						String value;
-						while ((value = br.readLine()) != null) {
-							value = WordUtils.capitalizeFully(value, new char[] { '.' });
-							// reply, hope,
-							if(count % 100 == 0) System.out.println(count);
-							count++;
-							try {
-								detectCommand(lp, value);
-						
-							}
-							catch(OutOfMemoryError e) {
-								continue;
-							}
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					finally {
-						try {
-							if (br != null)
-								br.close();
-							if (fr != null)
-								fr.close();
-						} catch (IOException ex) {
-							ex.printStackTrace();
-						}
-					}
-					break;
-
-				// json input file
-				case 3:
-
-					try {
-						JsonReader reader = new JsonReader(new FileReader(fileName + ".json"));
-			    		
-						reader.beginObject();
-						while (reader.hasNext()) {
-							String name = reader.nextName();
-							List<String> sentences = readJsonArray(reader);
-							for (String value : sentences) {
-								value = WordUtils.capitalizeFully(value, new char[] { '.' });
-								//System.out.println(++count);
-								detectCommand(lp, value);
-							}
-						}
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					break;
-				case 4:
-					BL.saveBlacklist(fileLocate + "data.txt", fileLocate + "result.txt");
-					break;
-				default:
-					System.out.println("wrong input");
-				}
-			} finally {
-				if (scanner != null)
-					scanner.close();
+				checkMalicious(detectCommand(lp, value), value);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
-		if(save_mode == 2) {
-			pw2.close();
+		scanner.close();
+	}
+	
+	/*
+	 * Read sentences from json form 
+	 */
+	public void readJsonFile(String fileName) {
+		try {
+			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
+    		
+			reader.beginObject();
+			while (reader.hasNext()) {
+				String name = reader.nextName();
+				List<String> sentences = readJsonArray(reader);
+				for (String value : sentences) {
+					value = WordUtils.capitalizeFully(value, new char[] { '.' });
+					//System.out.println(++count);
+					checkMalicious(detectCommand(lp, value), value);
+					}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/*
+	 * Read sentences from text file 
+	 */
+	public void readTextFile(String fileName) {
+		FileReader fr = null;
+		BufferedReader br = null;
+		int  count = 0;
+		try {
+	    	fr = new FileReader(fileLocate + fileName); 
+			
+	    	br = new BufferedReader(fr);
+			String value;
+			while ((value = br.readLine()) != null) {
+				value = WordUtils.capitalizeFully(value, new char[] { '.' });
+				
+				if(count++ % 100 == 0) System.out.println(count);
+				
+				try {
+					checkMalicious(detectCommand(lp, value), value);
+			
+				}
+				catch(OutOfMemoryError e) {
+					continue;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		finally {
+			try {
+				if (br != null)
+					br.close();
+				if (fr != null)
+					fr.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+	
+	/*
+	 *word data file : verb  obj
+	 *BL file :  Black List file
+	 *sent Data File : sentences which want to check if it is phishing data.
+	 *result File : writer File
+	 */
+	public void check(String wordDataFile, String BLfile, String sentDataFile, String resultFile ){
+
+		//Make BlackList Mode
+		if(wordDataFile != null) {
+			BL.saveBlacklist(fileLocate + wordDataFile, fileLocate + BLfile);
+		}
+				
+		// Save Mode
+		if(resultFile != null) {
+			try {
+				System.out.println("-- save mode");
+				File f = new File(fileLocate + resultFile);
+				f.createNewFile();
+				writer = new PrintWriter(new FileWriter(f));
+
+				File wf = new File(fileLocate + "wrong" + resultFile);
+				wf.createNewFile();
+				wrong_writer = new PrintWriter(new FileWriter(wf));
+			} catch (IOException e1) {
+				System.out.println("io error");
+				e1.printStackTrace();
+			}
+		}
+				
+		//line input mode
+		if(sentDataFile == null) {
+			System.out.println(" test sentence >> ");
+			readTextLine();
+			return;
+		}
+				
+		//json input file
+		if(sentDataFile.endsWith("json")){
+			System.out.println("-- json File");
+			readJsonFile(sentDataFile);				
+			return;
+		}
+		
+		//text input file
+		if(sentDataFile.endsWith("txt")) {
+			System.out.println("-- text File");
+			readTextFile(sentDataFile);	
+			return;
+		}
+		
+		if(writer != null) {
+			writer.close();
+			wrong_writer.close();
 		}
 	}
 
+	public static void main(String[] args){
+		DetectPhishingMail d = new DetectPhishingMail();
+		
+		//verb+obj File or null , Blacklist File , json or txt or null (input) , result or null 
+		d.check(null,"result.txt","malicious.txt","result_maliciouss.txt");
+
+	}
 }

@@ -34,7 +34,7 @@ class WordNet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}   
-	    System.out.println("open dictionary");
+	    System.out.println("-- open dictionary");
 	}
 	
 	ArrayList<String> getSynonyms(String strWord, POS pos){
