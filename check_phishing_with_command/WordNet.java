@@ -34,11 +34,10 @@ class WordNet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}   
-	    System.out.println("open dictionary");
+	    System.out.println("-- open dictionary");
 	}
 	
 	ArrayList<String> getSynonyms(String strWord, POS pos){
-		System.out.print(strWord + " >> ");
 		IIndexWord idxWord = dict.getIndexWord(strWord, pos);
 		ArrayList<String> result = new ArrayList<String>();
 		
@@ -47,13 +46,13 @@ class WordNet {
 		for(IWordID i : idxWord.getWordIDs()) {
     		ISynset synset = dict.getWord(i).getSynset();
     		for(IWord w : synset.getWords()) {
-    			if(!result.contains(w.getLemma())) {
-    				result.add(w.getLemma());
-    				System.out.print(w.getLemma() + " ");
+    			String lemma = w.getLemma();
+				if(lemma.split("_").length > 1) continue;
+    			if(!result.contains(lemma)) {
+    				result.add(lemma);
     			}
     		}
 		}
-		System.out.println("");
 		
 		return result;
 	}
