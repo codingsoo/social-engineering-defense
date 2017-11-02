@@ -47,11 +47,14 @@ public class DetectPhishingMail {
 	private CoreNLP cn; 	
 	private MakeBlacklist BL;
 
-	private int rCount,wCount;
+	private int rCount;
+	private int wCount;
+	private boolean test_mode;
 
-	DetectPhishingMail(){
+	DetectPhishingMail(String blacklistName){
 		rCount = 0;
 		wCount = 0;
+		test_mode = false;
 		
 		writer = null;
 		wrong_writer = null;
@@ -69,7 +72,7 @@ public class DetectPhishingMail {
 		cn = new CoreNLP();
 		 
 		//Manage blacklist
-		BL = new MakeBlacklist(fileLocate + "result.txt");  
+		BL = new MakeBlacklist(fileLocate + blacklistName);  
 	}
 	/*
 	 * Check if a single pair of verb and obj is included the pair in blacklist
@@ -102,6 +105,8 @@ public class DetectPhishingMail {
 		    	String verbWord = lem.get(tdl_i.gov().index()-1);
 		    	String objWord = lem.get(tdl_i.dep().index()-1);
 	    		
+		    	if(test_mode) System.out.println("verb obj >" + verbWord + " " + objWord);
+		    	
 	    		//Judge if this sentence is malicious
 	    		if(IsBlackListPair(verbWord, objWord)) return true;
 	    	}
@@ -121,7 +126,7 @@ public class DetectPhishingMail {
 		while (n.find()) {
 			String match = n.getMatch().firstChild().label().toString();
 			Tree temp = n.getMatch().firstChild().firstChild();
-			
+						
 			// remove gerund, to + infinitiv
 			if (match.equals("VP")) {
 				match = temp.label().toString();
@@ -138,6 +143,8 @@ public class DetectPhishingMail {
 			
 			//Store root verbs
 			VerbSet.add(temp.toString());
+			
+	    	if(test_mode) System.out.println("main verb >" + temp.toString());
 		}
 		return VerbSet;
 	}
@@ -316,7 +323,7 @@ public class DetectPhishingMail {
 			String value = scanner.nextLine();
 			try {
 				if(value.equals("exit")) return;
-				checkMalicious(detectCommand(lp, value), value);
+				System.out.println(checkMalicious(detectCommand(lp, value), value));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -356,18 +363,20 @@ public class DetectPhishingMail {
 		BufferedReader br = null;
 		int  count = 0;
 		try {
-	    	fr = new FileReader(fileLocate + fileName); 
-			
+			File f = new File(fileLocate + fileName);
+			if(!f.exists()) {
+				System.out.println("No text file exist! " + fileName);
+				return;
+			}
+	    	fr = new FileReader(fileLocate + fileName);
 	    	br = new BufferedReader(fr);
 			String value;
 			while ((value = br.readLine()) != null) {
 				value = WordUtils.capitalizeFully(value, new char[] { '.' });
 				
 				if(count++ % 100 == 0) System.out.println(count);
-				
 				try {
 					checkMalicious(detectCommand(lp, value), value);
-			
 				}
 				catch(OutOfMemoryError e) {
 					continue;
@@ -394,17 +403,17 @@ public class DetectPhishingMail {
 	 *sent Data File : sentences which want to check if it is phishing data.
 	 *result File : writer File
 	 */
-	public void check(String wordDataFile, String BLfile, String sentDataFile, String resultFile ){
-
+	public void check(String wordDataFile, String sentDataFile, String resultFile ){
+		
 		//Make BlackList Mode
 		if(wordDataFile != null) {
-			BL.saveBlacklist(fileLocate + wordDataFile, fileLocate + BLfile);
+			BL.saveBlacklist(fileLocate + wordDataFile);
 		}
 				
 		// Save Mode
 		if(resultFile != null) {
 			try {
-				System.out.println("-- save mode");
+				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
 				f.createNewFile();
 				writer = new PrintWriter(new FileWriter(f));
@@ -420,36 +429,34 @@ public class DetectPhishingMail {
 		//line input mode
 		if(sentDataFile == null) {
 			System.out.println(" test sentence >> ");
+			test_mode = true;
 			readTextLine();
-			return;
-		}
-				
+		}				
 		//json input file
-		if(sentDataFile.endsWith("json")){
-			System.out.println("-- json File");
+		else if(sentDataFile.endsWith("json")){
+			System.out.println("-- json File " + sentDataFile);
 			readJsonFile(sentDataFile);				
-			return;
 		}
-		
 		//text input file
-		if(sentDataFile.endsWith("txt")) {
-			System.out.println("-- text File");
+		else if(sentDataFile.endsWith("txt")) {
+			System.out.println("-- text File " + sentDataFile);
 			readTextFile(sentDataFile);	
-			return;
 		}
 		
 		if(writer != null) {
 			/* ************************ */
-			writer.println(rCount + ' ' + wCount);
+			System.out.println(rCount + " " + wCount);
+			writer.println(rCount + " " + wCount);
 			writer.close();
 			wrong_writer.close();
 		}
 	}
 
 	public static void main(String[] args){
-		DetectPhishingMail d = new DetectPhishingMail();
+		//blacklist file name
+		DetectPhishingMail d = new DetectPhishingMail("result_syn.txt");
 		
-		//verb+obj File or null , Blacklist File , json or txt or null (input) , result or null 
-		d.check(null,"result.txt","malicious.txt","new_result.txt");
+		//verb+obj File or null , json or txt or null (input) , result or null 
+		d.check("data.txt","non_malicious.txt","result_non_1101.txt");
 	}
 }

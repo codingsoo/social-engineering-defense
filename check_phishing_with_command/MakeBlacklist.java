@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,14 +14,20 @@ public class MakeBlacklist {
 	private Map<String,String> verb = new HashMap<String,String>();
 	private Map<String,Set<String>> obj = new HashMap<String,Set<String>>();
 	
-	private Map<String,Set<String>> objList;
 	private WordNet wn = new WordNet();
+	private CoreNLP cn = new CoreNLP();
 	
 	private String NUMBER = "_NUMBER_";
+	private File blackList;
 	
-	public MakeBlacklist(String blackListLocate) {
+	public MakeBlacklist(String BLlocate) {
 		try {
-			readBlacklist(blackListLocate);
+			blackList = new File(BLlocate);
+			if(!blackList.exists()) {
+				System.out.println("-- no blacklist file");
+			}
+			blackList.createNewFile();
+			readBlacklist();
 		} catch(Exception e) {
 			System.out.println("MakeBlacklist open fail");
 		}
@@ -50,11 +57,11 @@ public class MakeBlacklist {
 	/*
 	 * read saved blacklist
 	 */
-	public void readBlacklist(String fileLocate) {
+	public void readBlacklist() {
 		FileReader fr = null;
     	BufferedReader br = null;
 		try {
-			fr = new FileReader(fileLocate);
+			fr = new FileReader(blackList);
 			br = new BufferedReader(fr);
 			String s;
 			while((s = br.readLine()) != null && !s.equals("obj")) {
@@ -73,13 +80,17 @@ public class MakeBlacklist {
 					temp.add(data[i]);
 				obj.put(data[0], temp);
 			}
-		} catch (IOException e) {
+		}catch(FileNotFoundException e){
+			System.out.println("no file");
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	public boolean isNumber(String s) {
 		return s.matches(".*\\d.*");
 	}
+	
 	/*
 	 * Reading text data (verb obj)
 	 */
@@ -94,8 +105,10 @@ public class MakeBlacklist {
 				String[] data = s.split(" ");
 				if(data.length < 2) continue;
 
-				String key = data[0];		
-				String value =data[1];
+				//Lemmatize words
+				List<String> lem = cn.lemmatize(data[0] + " " + data[1]);
+				String key = lem.get(0);		
+				String value = lem.get(1);
 				
 				verb.put(key, null);
 				
@@ -124,13 +137,11 @@ public class MakeBlacklist {
 	/*
 	 * save blacklist
 	 */
-	public void saveData(String fileLocate) {
+	public void saveData() {
 		FileWriter wr = null;
     	BufferedWriter br = null;
 		try {
-			File f = new File(fileLocate);
-			f.createNewFile();
-			wr = new FileWriter(f);
+			wr = new FileWriter(blackList);
 			br = new BufferedWriter(wr);
 			for (Map.Entry<String, String> entry : verb.entrySet()) {
 				br.write(entry.getKey() + " " + entry.getValue() + "\r\n");
@@ -221,7 +232,7 @@ public class MakeBlacklist {
 		}
 		
 		//add synonyms
-		/*
+		
 		for(Map.Entry<String, Set<String>> entry : obj.entrySet()) {
 			Set<String> val = entry.getValue();
 			Set<String> temp = new HashSet<String>();
@@ -233,18 +244,14 @@ public class MakeBlacklist {
 			val.addAll(temp);
 			entry.setValue(val);
 		}
-		*/
+		
 	}
-	public void saveBlacklist(String dataFileLocate, String saveFileLocate) {
+	public void saveBlacklist(String dataFileLocate) {
 		readData(dataFileLocate);
 		makeVerbList();
 		makeObjList();
-		saveData(saveFileLocate);
+		saveData();
 		System.out.println("-- Finished saving blacklist!");
-	}
-	public void makeObjTrie() {
-	}
-	public void makeVerbTrie() {
 	}
 	
 }
