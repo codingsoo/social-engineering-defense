@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.lang.reflect.Type;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +35,7 @@ import edu.stanford.nlp.trees.tregex.TregexPattern;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 public class DetectPhishingMail {
@@ -334,10 +337,15 @@ public class DetectPhishingMail {
 	/*
 	 * Read sentences from json form 
 	 */
-	public void readJsonFile(String fileName) {
+	public void readJsonFile(String fileName) throws IllegalStateException{
 		try {
+			
 			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
-    		
+			
+			System.out.println(reader.nextName());
+			System.out.println(reader.nextString());
+			/*Type collectionType = new TypeToken<Collection<DetectPhishingMail>>(){}.getType();
+			//Collection<DetectPhishingMail> enums = new Gson().fromJson(reader, collectionType);
 			reader.beginObject();
 			while (reader.hasNext()) {
 				String name = reader.nextName();
@@ -348,6 +356,7 @@ public class DetectPhishingMail {
 					checkMalicious(detectCommand(lp, value), value);
 					}
 			}
+			*/
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -457,6 +466,7 @@ public class DetectPhishingMail {
 		DetectPhishingMail d = new DetectPhishingMail("result_syn.txt");
 		
 		//verb+obj File or null , json or txt or null (input) , result or null 
-		d.check("data.txt","non_malicious.txt","result_non_1101.txt");
+		d.check("data.txt", "malicious.txt", "result_1102.txt");
+		//d.check(null,"scam.json","result_1102.txt");
 	}
 }

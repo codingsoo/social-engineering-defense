@@ -20,6 +20,7 @@ public class MakeBlacklist {
 	private String NUMBER = "_NUMBER_";
 	private File blackList;
 	
+	
 	public MakeBlacklist(String BLlocate) {
 		try {
 			blackList = new File(BLlocate);
@@ -32,6 +33,10 @@ public class MakeBlacklist {
 			System.out.println("MakeBlacklist open fail");
 		}
 	}
+	
+	/*
+	 * Check if the pair is in blacklist.
+	 */
 	public boolean checkBlacklist(String verbWord, String objWord){
 	
 		if(!verb.containsKey(verbWord)) {
@@ -45,7 +50,7 @@ public class MakeBlacklist {
 			return false;
 			}
 		
-		//obj가 numeric인 경우
+		//if obj is numeric 
 		if(isNumber(objWord) && temp.contains(NUMBER)) return true; 
 		
 		if(!temp.contains(objWord)) {			
@@ -54,6 +59,7 @@ public class MakeBlacklist {
 		}
 		return true;
 	}
+	
 	/*
 	 * read saved blacklist
 	 */
@@ -87,6 +93,10 @@ public class MakeBlacklist {
 			e.printStackTrace();
 		}
 	}
+	
+	/*
+	 * Check if it is the number.
+	 */
 	public boolean isNumber(String s) {
 		return s.matches(".*\\d.*");
 	}
@@ -131,9 +141,9 @@ public class MakeBlacklist {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		
+		}	
 	}
+	
 	/*
 	 * save blacklist
 	 */
@@ -158,8 +168,8 @@ public class MakeBlacklist {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
+	
 	/*
 	 * if if set has synonyms with string a, return them.
 	 */
@@ -179,48 +189,44 @@ public class MakeBlacklist {
 	}
 	
 	/*
-	 * finding root.
+	 * Find the root.
 	 */
 	public String UnionFind(String s) {
 		String root = verb.get(s);
+		
 		if(s == root) return s;
 		verb.put(s, UnionFind(root));
+		
 		return root;
 	}
 	
 	/*
-	 * combine same meaning verb
+	 * Combine same meaning verb
 	 */
-	public void makeVerbList(){
-		Map<String,String> temp = new HashMap<String,String>();
-		
-		
+	public void makeVerbList(){		
 	    for (Map.Entry<String, String> entry : verb.entrySet()) {
 			//if root(value) exists, don't search
 	    	String key = entry.getKey();
-	    	
 	    	if(verb.get(key) != null) continue;
 	    	
-	    	
 	    	ArrayList<String> synList = isSynonym(key, verb.keySet());
+    		verb.put(key, key);
+    		
 	    	if(synList == null) {
     			continue;
 	    	}
-	    	
 	    	for(String i : synList) {	    	
 	    		//if root exists, change the root.
 	    		if(verb.get(i) != null) { 
-	    			verb.put( UnionFind(key) , UnionFind(verb.get(i)) );
+	    			verb.put(UnionFind(i), UnionFind(key));
 	    			continue;
 	    		}
-	    		temp.put(i,key);
 	    	}
-	    }
-	    verb.putAll(temp);   
+	    }  
 	}
 	
 	/*
-	 * combine same meaning obj
+	 * Combine same meaning obj
 	 */
 	public void makeObjList() {
 		for (Map.Entry<String, String> entry : verb.entrySet()) {
@@ -232,7 +238,6 @@ public class MakeBlacklist {
 		}
 		
 		//add synonyms
-		
 		for(Map.Entry<String, Set<String>> entry : obj.entrySet()) {
 			Set<String> val = entry.getValue();
 			Set<String> temp = new HashSet<String>();
@@ -246,6 +251,10 @@ public class MakeBlacklist {
 		}
 		
 	}
+	
+	/*
+	 * Save Blacklist
+	 */
 	public void saveBlacklist(String dataFileLocate) {
 		readData(dataFileLocate);
 		makeVerbList();
