@@ -6,7 +6,7 @@ import re
 
 global jdata
 
-with open('merged_scams_rid.json') as json_file:
+with open('scam_email_body_with_HTML.json') as json_file:
     jdata = json.load(json_file)
 
 jdata_key = jdata.keys()
@@ -16,19 +16,22 @@ contextList = ["dear","from","attention","attn","atten","subject","agent","smtp"
 
 counter = 0
 checkCnt = 0
-numbering = re.compile('(\[*|\(*|\{*)\,*\.*\ *([0-9]+)\,*\.*\ *(\)*|\}*|\]*)\:*\,*\.*\ *[a-zA-Z]+\ *[a-zA-Z\ ]*')   # cover "number.~~~~~ / number)~~~~ / number,~~~~ / number}~~~~ / (number)~~~~ / {number}~~~~ ..." form
+numbering = re.compile('(\[*|\(*|\{*)\,*\.*\ *([0-9]+)\,*\.*\ *(\)*|\}*|\]*)\:*\,*\.*\ *[a-zA-Z\(\ \)]+')   # cover "number.~~~~~ / number)~~~~ / number,~~~~ / number}~~~~ / (number)~~~~ / {number}~~~~ ..." form
 alphabeting = re.compile('(\[*|\(*|\{*)[a-zA-Z](\)+|\}+|\]+|\.|\,)')                                                # cover "[alpha]. ~~~ / alpha. ~~~ / alpha. ~~~ / alpha), ~~~ / (alpha). ~~~ / {alpha}. ~~~ ..." form
 pointing = re.compile('\*+\ *[a-zA-Z]+\ *[a-zA-Z\ ]*')                                                              # cover "*~~~~" form
 dotting = re.compile('\.+\ *[a-zA-Z]+\ *[a-zA-Z\ ]*')                                                               # cover ".~~~~" form
 nothing = re.compile('([a-zA-Z]+\ *[a-zA-Z\ ]*\ *)\.*\:*\ *\,*(\_\_+\_*|\.\.+\.*|\=\=+\=+|\-\-+\-+)')               # cover "~~~~__________ / ~~~~.......... / ~~~~============ / ~~~:=========== ... " form
 colon = re.compile('([a-zA-Z]+\ *\/*\(*[a-zA-Z\ ]*\ *\)*)\:+(\_\_+\_*|\.\.+\.*|\=\=+\=+|\-\-+\-+)*')                # cover "~~~:" form
 character = re.compile('([a-zA-Z]|[0-9])+')
-spliter = re.compile('(\:+\_*\.*\=*\-*|\_\_\_*|\.\.\.*|\=\=\=*|\-\-\-*||)')
+spliter = re.compile('(\:+\_*\.*\=*\-*|\_\_\_*|\.\.\.*|\=\=\=*|\-\-\-*)')
 
 for key in jdata_key:
     emailString = jdata[key]
     # if "application" in emailString:
     checkFormFlag = False
+
+    if counter >= 200 : break #############################
+
     for string in emailString.split("\n"):
         contextFlag = False
         if len(string) > 100: continue
@@ -52,7 +55,7 @@ for key in jdata_key:
             if len(spliter.split(string)) > 2 and character.search(spliter.split(string)[2]):    continue
             else:
                 checkFormFlag = True
-                OutputFile.write("**************" + string + "\n")
+                OutputFile.write(string + "\n")
 
     if checkFormFlag:   checkCnt += 1
     OutputFile.write("\n---------------------------------------------------------------------------\n")
