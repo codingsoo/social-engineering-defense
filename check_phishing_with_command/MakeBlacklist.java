@@ -236,20 +236,6 @@ public class MakeBlacklist {
 			if(obj.get(val) != null && obj.get(key) != null)obj.get(val).addAll(obj.get(key));
 			obj.remove(key);
 		}
-		
-		//add synonyms
-		for(Map.Entry<String, Set<String>> entry : obj.entrySet()) {
-			Set<String> val = entry.getValue();
-			Set<String> temp = new HashSet<String>();
-			for(String word : val) {
-				List<String> synWords = wn.getSynonyms(word, POS.NOUN);
-				if(synWords != null)
-					temp.addAll(wn.getSynonyms(word, POS.NOUN));
-			}
-			val.addAll(temp);
-			entry.setValue(val);
-		}
-		
 	}
 	
 	/*

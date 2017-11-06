@@ -38,6 +38,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
+
 public class DetectPhishingMail {
 	private String fileLocate;
 	private String[] specialWord;
@@ -339,24 +340,23 @@ public class DetectPhishingMail {
 	 */
 	public void readJsonFile(String fileName) throws IllegalStateException{
 		try {
-			
+			int count = 0, right = 0;
 			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
-			
-			System.out.println(reader.nextName());
-			System.out.println(reader.nextString());
-			/*Type collectionType = new TypeToken<Collection<DetectPhishingMail>>(){}.getType();
-			//Collection<DetectPhishingMail> enums = new Gson().fromJson(reader, collectionType);
-			reader.beginObject();
-			while (reader.hasNext()) {
-				String name = reader.nextName();
+			reader.beginArray();	
+			while(reader.hasNext()) {
+				count++;
 				List<String> sentences = readJsonArray(reader);
 				for (String value : sentences) {
 					value = WordUtils.capitalizeFully(value, new char[] { '.' });
 					//System.out.println(++count);
-					checkMalicious(detectCommand(lp, value), value);
+					if(checkMalicious(detectCommand(lp, value), value)) {
+						right++;
+						break;
 					}
+				}
+				if(count % 100 == 0) System.out.println("정답 :" + right + "  오답: " + (count - right)+ " 답 :" + count + " percent" + (right*100/count));
 			}
-			*/
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -463,10 +463,10 @@ public class DetectPhishingMail {
 
 	public static void main(String[] args){
 		//blacklist file name
-		DetectPhishingMail d = new DetectPhishingMail("result_syn.txt");
+		DetectPhishingMail d = new DetectPhishingMail("result.txt");
 		
 		//verb+obj File or null , json or txt or null (input) , result or null 
-		d.check("data.txt", "malicious.txt", "result_1102.txt");
+		d.check(null, "scam.json", null);
 		//d.check(null,"scam.json","result_1102.txt");
 	}
 }
