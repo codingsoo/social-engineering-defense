@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.lang.reflect.Type;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,7 +35,9 @@ import edu.stanford.nlp.trees.tregex.TregexPattern;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+
 
 public class DetectPhishingMail {
 	private String fileLocate;
@@ -334,20 +338,25 @@ public class DetectPhishingMail {
 	/*
 	 * Read sentences from json form 
 	 */
-	public void readJsonFile(String fileName) {
+	public void readJsonFile(String fileName) throws IllegalStateException{
 		try {
+			int count = 0, right = 0;
 			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
-    		
-			reader.beginObject();
-			while (reader.hasNext()) {
-				String name = reader.nextName();
+			reader.beginArray();	
+			while(reader.hasNext()) {
+				count++;
 				List<String> sentences = readJsonArray(reader);
 				for (String value : sentences) {
 					value = WordUtils.capitalizeFully(value, new char[] { '.' });
 					//System.out.println(++count);
-					checkMalicious(detectCommand(lp, value), value);
+					if(checkMalicious(detectCommand(lp, value), value)) {
+						right++;
+						break;
 					}
+				}
+				if(count % 100 == 0) System.out.println("정답 :" + right + "  오답: " + (count - right)+ " 답 :" + count + " percent" + (right*100/count));
 			}
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -454,9 +463,10 @@ public class DetectPhishingMail {
 
 	public static void main(String[] args){
 		//blacklist file name
-		DetectPhishingMail d = new DetectPhishingMail("result_syn.txt");
+		DetectPhishingMail d = new DetectPhishingMail("result.txt");
 		
 		//verb+obj File or null , json or txt or null (input) , result or null 
-		d.check("data.txt","non_malicious.txt","result_non_1101.txt");
+		d.check(null, "scam.json", null);
+		//d.check(null,"scam.json","result_1102.txt");
 	}
 }
