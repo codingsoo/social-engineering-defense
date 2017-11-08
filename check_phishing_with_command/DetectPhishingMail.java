@@ -119,10 +119,10 @@ public class DetectPhishingMail {
 	}
 
 	/*
-	 * Check if the parse if imperative
+	 * Check if the parse is imperative
 	 * Return : root verbs
 	 */
-	private List<String> isImperative(Tree parse) {
+	private List<String> IsImperative(Tree parse) {
 		TregexPattern noNP = TregexPattern.compile("((@VP=verb > (S !> SBAR)) !$,,@NP)");
 		TregexMatcher n = noNP.matcher(parse);
 		ArrayList<String> VerbSet = new ArrayList<String>();
@@ -153,15 +153,15 @@ public class DetectPhishingMail {
 		return VerbSet;
 	}
 
+	// Check the num word. 
 	private String extractOneWord(int num, ArrayList<TaggedWord> listedTaggedString) {
 		return listedTaggedString.get(num).toString().toLowerCase();
 	}
 
-/*
- * 주석 달아주세용
- *  you + moral
- */
-	private boolean isSuggestion(LexicalizedParser lp, String sentence,
+	/*
+	 *  Find the form that is "you + modal verb"
+	 */
+	private boolean IsSuggestion(LexicalizedParser lp, String sentence,
 			ArrayList<TaggedWord> listedTaggedString) {
 		//
 		for (int i = 0; i < listedTaggedString.size() - 1; i++) {
@@ -173,23 +173,18 @@ public class DetectPhishingMail {
 					|| (extractOneWord(i, listedTaggedString).contentEquals("have/vbp")
 							&& extractOneWord(i + 1, listedTaggedString).contentEquals("to/to"))) {
 				if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
-				//	System.out.println("It is suggestion.");
 					return true;
 				}
 			} else if (extractOneWord(i, listedTaggedString).contentEquals("would/md")) {
 				if (extractOneWord(i + 1, listedTaggedString).contentEquals("like/vb")) {
-				//	System.out.println("It is desire.");
 					return true;
 				} else if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
-				//	System.out.println("It is suggestion.");
 					return true;
 				}
 			} else if (extractOneWord(i, listedTaggedString).contentEquals("'d/md")) {
 				if (extractOneWord(i + 1, listedTaggedString).contentEquals("like/md")) {
-				//	System.out.println("It is desire.");
 					return true;
 				} else if (i != 0 && extractOneWord(i - 1, listedTaggedString).contentEquals("you/prp")) {
-				//	System.out.println("It is suggestion.");
 					return true;
 				}
 			}
@@ -200,7 +195,7 @@ public class DetectPhishingMail {
 	/*
 	 * Find the sentence formed "You + moral"
 	 */
-	private boolean isSuggestion(Tree parse) {
+	private boolean IsSuggestion(Tree parse) {
 		TregexPattern sug = TregexPattern.compile("((@VP=md > S ) $,,@NP=you )");
 		TregexMatcher s = sug.matcher(parse);
 
@@ -214,24 +209,35 @@ public class DetectPhishingMail {
 		return false;
 	}
 	
-/*
- * 주석달기
- * including desire verb
- */
-	private boolean isDesireExpression(List<TypedDependency> tdl) {
+	/*
+	 * Find a desire verb by using 'nsubj' dependency
+	 */
+	private boolean IsDesireExpression(List<TypedDependency> tdl) {
 		for (int i = 0; i < tdl.size(); i++) {
 			String extractElement = tdl.get(i).reln().toString();
 			String oneWord = tdl.get(i).gov().value().toString().toLowerCase();
 			if (extractElement.equals("nsubj")) {
 				if (oneWord.contains("want") || oneWord.equals("hope") || oneWord.equals("wish")
 						|| oneWord.equals("desire")) {
-					//System.out.println("It is desire sentence.");
 					return true;
-					// printObjVerb(tdl);
 				}
 			}
 		}
 		return false;
+	}
+	
+	/*
+	 * Find a SQ question sentences
+	 * ex) Can you ~~?  Do you ~~?
+	 */
+	private boolean IsQuestion(Tree parse) {
+		if(parse.firstChild().getNodeNumber(1).toString().contains("SQ")
+				&& !parse.firstChild().getNodeNumber(1).toString().contains("SBARQ")) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	/*
@@ -239,6 +245,7 @@ public class DetectPhishingMail {
 	 */
 	private boolean detectCommand(LexicalizedParser lp, String sentence) throws IOException {
 		int sentLen = sentence.split(" ").length;
+		
 		// if the sentence has only one word, go to the next sentence.
 		if (sentLen > 50 || sentLen < 2) {
 			return false;
@@ -268,13 +275,15 @@ public class DetectPhishingMail {
 		}
 
 		// extracting imperative sentence
-		List<String> imperVerb = isImperative(parse);
+		List<String> imperVerb = IsImperative(parse);
 		if (!imperVerb.isEmpty()) {
 			return IsBlackListSent(tdl, sentence, Arrays.asList("dobj","nmod","xcomp"),imperVerb);
 		}
 
 		// extracting suggestion sentence and desire expression sentence
-		if (isSuggestion(lp, sentence, listedTaggedString) || isDesireExpression(tdl)) {
+		if (IsSuggestion(lp, sentence, listedTaggedString) 
+				|| IsDesireExpression(tdl)
+				|| IsQuestion(parse)) {
 			return IsBlackListSent(tdl, sentence, Arrays.asList("dobj"),imperVerb);
 		}
 		return false;

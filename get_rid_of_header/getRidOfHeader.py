@@ -8,15 +8,18 @@ import re
 
 global jdata
 
-with open('merged_scams.json','rb') as json_file:
+with open('scam_email_body_with_HTML.json','rb') as json_file:
     jdata = json.load(json_file)
 
-jdata_key = jdata.keys()
-jDic = {}
+#jdata_key = jdata.keys()
+#jDic = {}
+jList = []
 parser = email.parser.Message
 counter = 0
-for key in jdata_key:
-    emailString = jdata[key].lstrip().encode('ASCII','ignore')
+#for key in jdata_key:
+for emailString in jdata:
+    #emailString = jdata[key].lstrip().encode('ASCII','ignore')
+    emailString = emailString.lstrip().encode('ASCII', 'ignore')
 
     if(emailString.find("From:") != -1):
         emailString_r = emailString[emailString.find("From:"):]
@@ -24,7 +27,7 @@ for key in jdata_key:
         emailString_r = "From:" + emailString[emailString.find("from:")+ 6:]
         counter += 1
     else:
-        emailString_r = "From: \n" + emailString
+        emailString_r = "From: \r\n" + emailString
 
     msg = email.message_from_string(emailString_r)
 
@@ -36,7 +39,8 @@ for key in jdata_key:
     else:
         emailContent = str(msg.get_payload())
 
-    if(emailContent):  jDic[key] = emailContent
+    if(emailContent):  #jDic[key] = emailContent
+        jList.append(emailContent)
 
     print "\n-------------------------------------------------------\n"
 
@@ -44,6 +48,8 @@ for key in jdata_key:
     icursor = 0
 
 print str(counter) + '/' + str(len(jdata))
-print len(jDic)
-with open('merged_scams_rid.json','wb') as json_file:
-    json.dump(jDic,json_file)
+#print len(jDic)
+print len(jList)
+with open('scams_rid.json','wb') as json_file:
+    #json.dump(jDic,json_file)
+    json.dump(jList,json_file)
