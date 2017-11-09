@@ -233,7 +233,7 @@ public class DetectPhishingMail {
 	private boolean IsQuestion(Tree parse) {
 		String POStag = String.valueOf(parse);
 		if(POStag.contains("SQ")
-				&& POStag.contains("SBARQ")) {
+				|| POStag.contains("SBARQ")) {
 			return true;
 		}
 		else {
