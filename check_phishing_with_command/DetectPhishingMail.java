@@ -48,7 +48,7 @@ public class DetectPhishingMail {
 	private LexicalizedParser lp;	
 	private String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 	
-	private CoreNLP cn; 	
+	private CoreNLP cn; 
 	private MakeBlacklist BL;
 
 	private int rCount;
@@ -231,8 +231,9 @@ public class DetectPhishingMail {
 	 * ex) Can you ~~?  Do you ~~?
 	 */
 	private boolean IsQuestion(Tree parse) {
-		if(parse.firstChild().getNodeNumber(1).toString().contains("SQ")
-				&& !parse.firstChild().getNodeNumber(1).toString().contains("SBARQ")) {
+		String POStag = String.valueOf(parse);
+		if(POStag.contains("SQ")
+				&& POStag.contains("SBARQ")) {
 			return true;
 		}
 		else {
