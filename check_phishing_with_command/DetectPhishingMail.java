@@ -12,10 +12,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringReader;
 import java.lang.reflect.Type;
+import java.nio.file.Path;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 
 import edu.stanford.nlp.ling.TaggedWord;
@@ -296,18 +299,22 @@ public class DetectPhishingMail {
 	private boolean checkMalicious(boolean result, String sent) {
 		if(result) {
 			rCount++;
+			//about right sentence
+			/*
 			if(writer != null) {
-				/* ************************ */
 				writer.println(sent + '\n');
 			}
+			*/
 			return true;
 		}
 		else {
 			wCount++;
+			//about right sentence
+			/*
 			if(wrong_writer != null) {
-				/* ************************ */
 				wrong_writer.println(sent + '\n');
 			}
+			*/
 			return false;
 		}
 	}
@@ -344,34 +351,70 @@ public class DetectPhishingMail {
 		scanner.close();
 	}
 	
+	public int passFile(int count, String fileName, int dataSize) {
+		int existCount = count;
+		File f = new File(fileLocate + existCount + fileName);
+		
+		//check existCount
+		while(f.exists() && existCount < dataSize) {
+			existCount += 10000;
+			f = new File(fileLocate + existCount + fileName);
+		}
+		f.delete();
+		return existCount;
+	}
+	
 	/*
 	 * Read sentences from json form 
 	 */
-	public void readJsonFile(String fileName) throws IllegalStateException{
+	public void readJsonFile(String fileName, String resultFile) throws IllegalStateException{
 		try {
-			int count = 0, right = 0;
+			int count = 0,existCount = 0, rightCount = 0;
 			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
 			reader.beginArray();	
 			while(reader.hasNext()) {
+				if(count % 10000 == 0 && writer != null) {
+					writer.close();
+					File f = new File(fileLocate + count + resultFile);
+					if(f.exists()) {
+						existCount = passFile(count, resultFile, 180000);
+						while(count < existCount && reader.hasNext()) {
+							readJsonArray(reader);
+							count++;
+						}
+						f = new File(fileLocate + count + resultFile);
+					}
+					f.createNewFile();
+					writer = new PrintWriter(new BufferedWriter(new FileWriter(f)));
+				}
 				count++;
+				boolean right = false;
 				List<String> sentences = readJsonArray(reader);
 				for (String value : sentences) {
 					value = WordUtils.capitalizeFully(value, new char[] { '.' });
-					//System.out.println(++count);
 					if(checkMalicious(detectCommand(lp, value), value)) {
-						right++;
+						right = true;
+						rightCount++;
 						break;
 					}
 				}
-				if(count % 100 == 0) System.out.println("정답 :" + right + "  오답: " + (count - right)+ " 답 :" + count + " percent" + (right*100/count));
+				if(writer != null) {
+					if(right) writer.print(1);
+					else writer.print(0);
+				}
+				if(count % 500 == 0) {
+					System.out.println("정답 :" + rightCount + " 답 :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
+				}
 			}
 			
+			reader.close();	
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
 	
 	/*
 	 * Read sentences from text file 
@@ -430,18 +473,14 @@ public class DetectPhishingMail {
 				
 		// Save Mode
 		if(resultFile != null) {
-			try {
+			try {				
 				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
 				f.createNewFile();
-				writer = new PrintWriter(new FileWriter(f));
-
-				File wf = new File(fileLocate + "wrong" + resultFile);
-				wf.createNewFile();
-				wrong_writer = new PrintWriter(new FileWriter(wf));
+				writer = new PrintWriter(new BufferedWriter(new FileWriter(f)));
 			} catch (IOException e1) {
 				System.out.println("io error");
-				e1.printStackTrace();
+				e1.printStackTrace();			
 			}
 		}
 		//line input mode
@@ -453,7 +492,7 @@ public class DetectPhishingMail {
 		//json input file
 		else if(sentDataFile.endsWith("json")){
 			System.out.println("-- json File " + sentDataFile);
-			readJsonFile(sentDataFile);				
+			readJsonFile(sentDataFile, resultFile);				
 		}
 		//text input file
 		else if(sentDataFile.endsWith("txt")) {
@@ -462,11 +501,9 @@ public class DetectPhishingMail {
 		}
 		
 		if(writer != null) {
-			/* ************************ */
-			System.out.println(rCount + " " + wCount);
-			writer.println(rCount + " " + wCount);
+			//System.out.println(rCount + " " + wCount);
+			//writer.println(rCount + " " + wCount);
 			writer.close();
-			wrong_writer.close();
 		}
 	}
 
@@ -475,7 +512,7 @@ public class DetectPhishingMail {
 		DetectPhishingMail d = new DetectPhishingMail("result.txt");
 		
 		//verb+obj File or null , json or txt or null (input) , result or null 
-		d.check(null, "scam.json", null);
+		d.check(null, "scam.json", "_result.txt");
 		//d.check(null,"scam.json","result_1102.txt");
 	}
 }
