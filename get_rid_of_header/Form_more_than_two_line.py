@@ -119,23 +119,28 @@ def get_question_list_from_word(word_list):
 
 global jdata
 
-with open('scam_email_body_with_HTML.json') as json_file:
+with open('scam_with_HTML_random.json') as json_file:
     jdata = json.load(json_file)
 
-OutputFile = codecs.open("form_questions.txt","w",encoding='utf-8')
 
-contextList = ["dear","from","attention","attn","atten","subject","agent","smtp","message-id","click to expand"]
+contextList = ["dear","from","attention","attn","atten","subject","agent","smtp","message-id","click to expand","cc"]
 
 
-# counter = 0
+counter = 0
 # checkCnt = 0
+qlist = []
+exception_list = []
 for emailString in jdata:
+    counter += 1
 
-    checkFormFlag = False
+    if counter % 10 == 0: print counter
+
+    #if counter > 1000: break
+
     strNum = 0
     lineNumList = []
     emailStringList = emailString.split("\n")
-
+    checkFormFlag = False
     for string in emailStringList:
         contextFlag = False
         if len(string) > 100: pass
@@ -167,18 +172,32 @@ for emailString in jdata:
 
             checkFormFlag = True
 
+    if checkFormFlag:
+        exception_list.append(counter - 1)
     ############################
+    q_str_list = []
     for string in formLineStr:
         tmp_list = string_pat.findall(string)
         question_list = get_question_list_from_word(tmp_list)
 
-        for question in question_list:
-            OutputFile.write(str(question) + "\n")
+        q_str_list += question_list
+        #for question in question_list:
+           #OutputFile.write(str(question) + "\n")
     #############################
+    qlist.append(q_str_list)
     # need to modi with output handling to find out scam email form email set
     ############################
 
-    OutputFile.write("\n---------------------------------------------------------------------------\n")
+
+OutputFile = codecs.open("result/form_questions_scam_0_1000.json","w",encoding='utf-8')
+
+print counter
+json.dump(qlist, OutputFile)
+
+
+with open("result/form_questions_scam_index_0_1000.json","w") as exception_file:
+    json.dump(exception_list,exception_file)
+    #OutputFile.write("\n---------------------------------------------------------------------------\n")
 
 OutputFile.close()
 
