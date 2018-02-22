@@ -6,7 +6,7 @@ We present an approach which analyzes attack content to detect inappropriate sta
 
 ## System Structure
 
-![system_structure](https://github.com/learnitdeep/social-engineering-defense/architect.png)  
+![system_structure](https://github.com/learnitdeep/social-engineering-defense/blob/master/system_structure.png)  
 
 ### Data
 
