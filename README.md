@@ -9,7 +9,7 @@ For form detecting.
 2.   Input = email content text List (each element of list is a one email content data) <br>
     Output = question List (2d List of question, e.g. [[question 1, question 2, …] , [question1, …]]) <br>
     
-        get_rid_of_header/Form_more_than_two_line.py [input_file_path/file_name][output_file_path/file_name]
+        python2.7 get_rid_of_header/Form_more_than_two_line.py [input_file_path/file_name][output_file_path/file_name]
     
     -  Be sure about if there are module at the correct path and you have before run it.
     - stanford-parser version. *   (Problem with version when using “corenlp.py”) <br>
