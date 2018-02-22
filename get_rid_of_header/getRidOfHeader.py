@@ -47,7 +47,7 @@ def get_rid_of_header_of_email(input_file_name, output_file_name):
         icursor = 0
 
     print str(counter) + '/' + str(len(jdata))
-
+    # dump to output email content text
     with open(output_file_name,'wb') as json_file:
         json.dump(jList,json_file)
 
