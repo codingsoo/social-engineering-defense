@@ -41,9 +41,11 @@ def check_from_web(questions):
     
     print "checking count is %d" %checked_cnt
 
-question_list = []
+if __name__ == "__main__":
 
-with open("testing.json") as question_file:
-    question_list = json.load(question_file)
+    question_list = []
 
-check_from_web(question_list)
+    with open("testing.json") as question_file:
+        question_list = json.load(question_file)
+
+    check_from_web(question_list)
