@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import os
 
-# reference_blog : https://beomi.github.io/2017/01/20/HowToMakeWebCrawler/
+# reference_blog : Scam Mail Depot -> From tag
 
 # It can search the url's title
 def request_titles(url):
@@ -107,7 +107,6 @@ for data_path in path:
         # Tag의 속성을 가져오기(ex: href속성) => title.get('href')
 
         data[title.text] = title.get('href')
-        print("data appended :",title.text)
     # eliminate unnecessary data
     data.pop('Thread Display Options')
     print("processed data------------------------->",data)
@@ -118,21 +117,21 @@ num_of_images = 0
 # append all of the phishing mail data(exact phishing mail data)
 phishing_mail_data = {}
 for phishing_name, phishing_url in data.items():
-    num_of_phishing_mail = num_of_phishing_mail + 1
-    article = request_article(url + phishing_url)
-    print("crawled mail : ",article[0].text)
-    if "attachments" in str(article[0]):
-        num_of_images = num_of_images + 1
+    try:
+        article = request_article(url + phishing_url)
+        if 'From:' in str(article[0].text):
+            phishing_mail_data[phishing_name] = article[0].text
+            num_of_phishing_mail = num_of_phishing_mail + 1
+            print(num_of_phishing_mail)
+            if "attachments" in str(article[0]):
+                num_of_images = num_of_images + 1
 
-    phishing_mail_data[phishing_name] = article[0].text
+    except:
+        print(Exception)
 
 print("Total number of mail data :", num_of_phishing_mail)
 print("Total image mail :", num_of_images)
 
-# store title and url
-# with open(os.path.join(BASE_DIR, 'antifraudintl_result.json'), 'w+') as json_file:ㅂ
-#     json.dump(data, json_file)
-
 # store title and phishing mail data
-with open(os.path.join(BASE_DIR, 'antifraudintl_widows.json'), 'w+') as json_file:
+with open(os.path.join(BASE_DIR, 'antifraudintl.json'), 'w+') as json_file:
     json.dump(phishing_mail_data, json_file)
