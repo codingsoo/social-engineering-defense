@@ -1,3 +1,5 @@
+We provide pre-crawled emails. You can use our pre-crawled-email data in [google drive](https://drive.google.com/file/d/1D8BUS_wxZVip6EFmhMkrXunBXcuBev7o/view?usp=sharing).  
+If you want to crawl emails by yourself, you can use our code.
 # Scam Crawling
 
 ## Crawling Web Sites
@@ -9,7 +11,7 @@ We crawl scam datas from three websites.
 3. scamwarners_com.py => https://www.scamwarners.com/forum/
 4. scamdex.py => http://www.scamdex.com/
 
-Just type python ****.py on your computer!
+Just type python ****.py on your computer!  
 
 ### Scamdex
 
@@ -56,7 +58,7 @@ Total number of scam email data is 187154.
 
 ### remove header
 
-We removed header to parse only email body beacuse our approach is only for natural language. source cod is [here](https://github.com/zerobugplz/social-engineering-defense/blob/master/crawling_scam_mails/remove_header.py)
+We removed header to parse only email body beacuse our approach is only for natural language. source code is [here](https://github.com/zerobugplz/social-engineering-defense/blob/master/crawling_scam_mails/remove_header.py)
 
 ### Python version
 
