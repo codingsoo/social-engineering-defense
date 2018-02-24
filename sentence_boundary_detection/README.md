@@ -4,11 +4,11 @@
 
 ### Motivaiton
 
-Some of scam emails misse thier punctuations, so it is hard to detect sentence boundary. We used punctuator for adding punctuations. You can see this algorithm on this [paper](http://www.isca-speech.org/archive/Interspeech_2016/pdfs/1517.PDF) and code [here](https://github.com/ottokart/punctuator2).  
+Some of scam emails miss their punctuations, so it is hard to detect sentence boundary. We use punctuator for adding punctuations. You can see this algorithm on this [paper](http://www.isca-speech.org/archive/Interspeech_2016/pdfs/1517.PDF) and code [here](https://github.com/ottokart/punctuator2).  
 
 ### Idea
 
-punctuator2 trained twice.  
+Punctuator2 can train model twice.  
 
 1. Bidirectional GRU model with attention-mechanism, and late-fusion.
 2. With late fusion output, add pause-duration and adapt to target domain, the second stage discards the first stage output layer and replaces it with a new recurrent GRU layer.
@@ -17,19 +17,19 @@ I used pre-trained model that they provide : [click](https://drive.google.com/dr
 
 ### Code Description
 
-Our code is on [github](https://github.com/zerobugplz/social-engineering-defense/tree/sentence_boundary_detection/sentence_boundary_detection/punctuator2-1.0). you should download [pre-training dataset](https://drive.google.com/drive/folders/0B7BsN5f2F1fZQnFsbzJ3TWxxMms) to run punctuator. Then just run [play_with_model.py](https://github.com/zerobugplz/social-engineering-defense/blob/sentence_boundary_detection/sentence_boundary_detection/punctuator2-1.0/play_with_model.py) with your text dataset. Because I use scam emails, and it has already punctuations partially, I change this punctuator2 code to punctuate only if there is no period or question mark nearby.  
+Our code is on [github](https://github.com/zerobugplz/social-engineering-defense/tree/sentence_boundary_detection/sentence_boundary_detection/punctuator2-1.0). You should download [pre-training dataset](https://drive.google.com/drive/folders/0B7BsN5f2F1fZQnFsbzJ3TWxxMms) to run punctuator. Then just run [play_with_model.py](https://github.com/zerobugplz/social-engineering-defense/blob/sentence_boundary_detection/sentence_boundary_detection/punctuator2-1.0/play_with_model.py) with your text dataset. Because I use scam emails, and it has already punctuations partially, I change this punctuator2 code to punctuate only if there is no period or question mark nearby.  
 
 ### Training Details
 
 - Adagrad optimizer : learning rate 0.02
 - L2-norm < 2
 - 5 epochs early termination
-- weight : normalizer initialization
-- hidden layer 256
-- activation function : tanh
-- mini-batches : 128
-- trained by Theano framework
-- data : [INTERSPEECH-T-BRNN-pre.pcl](https://drive.google.com/drive/folders/0B7BsN5f2F1fZQnFsbzJ3TWxxMms)
+- Weight : normalizer initialization
+- Hidden layer 256
+- Activation function : tanh
+- Mini-batches : 128
+- Trained by Theano framework
+- Data : [INTERSPEECH-T-BRNN-pre.pcl](https://drive.google.com/drive/folders/0B7BsN5f2F1fZQnFsbzJ3TWxxMms)
 
 ## Sentence Tokenizing with Punkt(NLTK).
 
@@ -41,10 +41,11 @@ It is one of the most popular sentence tokenizer algorithm in the world. It perf
 
 ![punkt_structure](https://github.com/learnitdeep/social-engineering-defense/blob/master/punkt_structure.png)  
 
-- <S> Sentence Boundary
-- <A> Abbreviation
-- <E> Ellipsis
-- <A><S> Abbreviation at the End of Sentence <E><S> Ellipsis at the End of Sentence
+- S : Sentence Boundary
+- A : Abbreviation
+- E : Ellipsis
+- AS : Abbreviation at the End of Sentence
+- ES : Ellipsis at the End of Sentence
 
 ### Code Description
 
