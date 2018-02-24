@@ -10,7 +10,7 @@ We present an approach which analyzes attack content to detect inappropriate sta
 
 ### Data
 
-We use email data, but input can be any text-data. You can crawl email data in [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails).
+We use email data, but input can be any text-data. You can crawl email data in [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails), or you can use [pre-crawled email data](https://drive.google.com/file/d/1D8BUS_wxZVip6EFmhMkrXunBXcuBev7o/view?usp=sharing).
 
 ### Sentence Processing
 
@@ -30,7 +30,7 @@ For form detecting.
 
 	    python2.7 get_rid_of_header/getRidOfHeader.py [input_file_path/file_name][output_file_path/file_name]
 
-2.   Input = email content text List (each element of list is a one email content data) <br>
+2. Input = email content text List (each element of list is a one email content data) <br>
     Output = question List (2d List of question, e.g. [[question 1, question 2, …] , [question1, …]]) <br>
 
         python2.7 get_rid_of_header/Form_more_than_two_line.py [input_file_path/file_name][output_file_path/file_name]
