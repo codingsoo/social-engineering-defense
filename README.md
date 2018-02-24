@@ -10,6 +10,8 @@ We present an approach which analyzes attack content to detect inappropriate sta
 
 ### Data
 
+We used email data, but input can be any text-data. You can crawl email data in [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails).
+
 ### Sentence Processing
 
 ### Form Item Detection
