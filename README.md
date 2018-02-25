@@ -32,7 +32,7 @@ what is your job?
 what is your phone?
 ```
 
-You can see details in [sentence_boundary_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/form_item_detection).
+You can see details in [form_item_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/form_item_detection).
 
 ### Command Analysis
 
