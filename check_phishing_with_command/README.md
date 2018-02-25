@@ -11,20 +11,20 @@ stanford-parser.jar
 commons-lang-2.6.jar
 ```
 
-* JWI
+##### JWI
 JWI is a Java library for interfacing with Wordnet.
 [here](https://projects.csail.mit.edu/jwi/)
 We used it for verifying synonyms. 
 
-* GSON
+##### GSON
 Gson is a Java library that can be used to convert Java Objects into their JSON representation.
 [here](https://mvnrepository.com/artifact/com.google.code.gson/gson/2.8.0)
 
-* Stanford corenlp
+##### Stanford corenlp
 Stanford CoreNLP provides a set of human language technology tools.
 [here](https://stanfordnlp.github.io/CoreNLP/download.html)
 
-* Stanford parser
+##### Stanford parser
 Java implementation of probabilistic natural language parsers.
 [here](https://nlp.stanford.edu/software/lex-parser.shtml#Download)
 
