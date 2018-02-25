@@ -36,4 +36,22 @@ You can see details in [form_item_detection folder](https://github.com/zerobugpl
 
 ### Command Analysis
 
+1. Imperative
+
+This is to find the imperative sentences which generally start with the verb. 
+
+2. Suggestion
+3. DesireExpression
+4. Question
+
+### Check Malicious
+
+We use blacklist for checking whether it's scam or not
+```
+transport money
+ship money
+send money
+notify we
+...
+```
 ### Question Analysis
