@@ -2,6 +2,7 @@ from nltk.wsd import lesk
 from nltk import sent_tokenize
 from nltk.corpus import wordnet as wn
 import math
+import sys
 
 """
 Count keywords in mail
@@ -146,7 +147,7 @@ input : keywords text file [verb object\n... ]
 output : saved file name
 """
 def expand_wordlist(input_file):
-    output_file = "all_" + file
+    output_file = "all_" + input_file
     r = open(input_file,"r")
     w = open(output_file, "w")
     count = 0
@@ -154,11 +155,11 @@ def expand_wordlist(input_file):
         s = sent.split("\n")[0].split(" ")
         if(len(s) < 2): continue
         count += store(w,make_wordlist(s[0].lower(),sent),make_wordlist(s[1].lower(),sent))
-    print(count)
+    print("word number : " ,count)
     r.close()
     w.close()
 
-    return ouput_file
+    return output_file
 
 """
 input :
@@ -177,7 +178,7 @@ def make_raw_list(scam_data_file, enron_data_file, scam_mail_file, enron_mail_fi
 
 if __name__ == "__main__":
     # make raw data
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 5:
         file = make_raw_list(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
         print("[Output file] : ", file)
     # expand data

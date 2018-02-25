@@ -21,11 +21,12 @@ import edu.mit.jwi.item.Pointer;
 import edu.mit.jwi.morph.WordnetStemmer;
 
 class WordNet {
-	String path = System.getProperty("user.dir") + "\\src\\dict";
-    IDictionary dict = null;
+	String path = System.getProperty("user.dir") + "\\dict";
+	IDictionary dict = null;
 	
 	WordNet(){
 		try {
+			System.out.println(path);
 			URL url = new URL("file", null, path);
 			dict = new Dictionary(url);
 		    dict.open();
