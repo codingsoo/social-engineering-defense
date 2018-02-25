@@ -114,7 +114,7 @@ public class DetectPhishingMail {
 		    	String verbWord = lem.get(tdl_i.gov().index()-1);
 		    	String objWord = lem.get(tdl_i.dep().index()-1);
 	    		
-		    	if(data_mode) { 
+		    	if(data_mode) {
 		    		writer.println(verbWord + " " + objWord);
 		    		continue;
 		    	}
@@ -404,7 +404,7 @@ public class DetectPhishingMail {
 						break;
 					}
 				}
-				if(writer != null) {
+				if(writer != null && !data_mode) {
 					if(right) writer.println(1);
 					else writer.println(0);
 				}
@@ -446,7 +446,7 @@ public class DetectPhishingMail {
 				try {
 					right = checkMalicious(detectCommand(lp, value), value);
 					
-					if(writer != null) {
+					if(writer != null && !data_mode) {
 						if(right) writer.println(1);
 						else writer.println(0);
 					}
@@ -522,8 +522,8 @@ public class DetectPhishingMail {
 	public static void main(String[] args){
 		// Extract keywords only
 		if(args.length == 2) {
-			data_mode = true;
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
+			data_mode = true;
 			d.check(null, args[0], args[1]);
 		}
 		else if(args.length == 4) {

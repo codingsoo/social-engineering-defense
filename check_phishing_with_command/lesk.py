@@ -1,3 +1,4 @@
+import nltk
 from nltk.wsd import lesk
 from nltk import sent_tokenize
 from nltk.corpus import wordnet as wn
@@ -177,8 +178,10 @@ def make_raw_list(scam_data_file, enron_data_file, scam_mail_file, enron_mail_fi
 
 
 if __name__ == "__main__":
+    nltk.download('wordnet')
     # make raw data
     if len(sys.argv) == 5:
+        # scam_data_file, enron_data_file, scam_mail_file, enron_mail_file
         file = make_raw_list(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
         print("[Output file] : ", file)
     # expand data
