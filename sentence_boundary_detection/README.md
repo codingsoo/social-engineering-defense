@@ -1,5 +1,8 @@
 # Sentence Boundary Detection
 
+We provide pre-sentence-tokenized emails. You can use our pre-sentence-tokenized email data in [google drive](https://drive.google.com/file/d/1tveWU5yungDuWlnBhlkfhkNM8CW21Xxw/view?usp=sharing).  
+If you want to tokenize sentences by yourself, you can use our code.
+
 ## Puncatuate
 
 ### Motivaiton

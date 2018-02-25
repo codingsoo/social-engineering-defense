@@ -1,8 +1,9 @@
+# Crawling
+
 We provide pre-crawled emails. You can use our pre-crawled-email data in [google drive](https://drive.google.com/file/d/1D8BUS_wxZVip6EFmhMkrXunBXcuBev7o/view?usp=sharing).  
 If you want to crawl emails by yourself, you can use our code.
-# Scam Crawling
 
-## Crawling Web Sites
+## Scam Crawling
 
 We crawl scam datas from three websites.  
 
@@ -64,8 +65,8 @@ We removed header to parse only email body beacuse our approach is only for natu
 
 2.7.10
 
-# Non Scam Crawling
+## Non Scam Crawling
 
-## Enron Email
+### Enron Email
 
 We use Enron email as non-scam-data which contains data from about 150 users, mostly senior management of Enron. You can get more details about Enron email data [here](https://www.cs.cmu.edu/~enron/). I randomly chose 187048 enron data because we have 187048 scam emails(some were empty out of 187154). You can download through this [link](https://drive.google.com/file/d/1huRLrUc7G1GdEfUb2t2rwAFoI9xlc3Wm/view?usp=sharing).

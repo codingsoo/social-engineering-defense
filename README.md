@@ -14,7 +14,7 @@ We use email data, but input can be any text-data. You can crawl email data in [
 
 ### Sentence Processing
 
-The text is processed by partitioning it into sentences and parsing each sentence to gain structural information which will be used for analysis. Separating text into sentences is performed by using the Punctuator tool to insert periods at appropriate locations. The Punkt tool partitions sentences at the period boundaries, differentiating between periods which end sentences and those which are part of abbreviations. You can see details in [sentence_boundary_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_boundary_detection).
+The text is processed by partitioning it into sentences and parsing each sentence to gain structural information which will be used for analysis. Separating text into sentences is performed by using the Punctuator tool to insert periods at appropriate locations. The Punkt tool partitions sentences at the period boundaries, differentiating between periods which end sentences and those which are part of abbreviations. You can see details in [sentence_boundary_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_boundary_detection), or you can use [pre-sentence-tokenized email data](https://drive.google.com/file/d/1tveWU5yungDuWlnBhlkfhkNM8CW21Xxw/view?usp=sharing).
 
 ### Form Item Detection
 
