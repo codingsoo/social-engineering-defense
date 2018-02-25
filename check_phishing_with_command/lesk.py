@@ -167,13 +167,13 @@ input :
     scam_data_file, enron_data_file : text file with every keywords in whole mail 
     scam_mail_file, enron_mail_file : text file with every keywords in whole mail but non-overlapping keywords in the one mail
 """
-def make_raw_list(scam_data_file, enron_data_file, scam_mail_file, enron_mail_file):
+def make_raw_list(scam_data_file, enron_data_file, scam_mail_file, enron_mail_file, threshold):
     scam_dic = counting_keyword(scam_data_file)
     enron_dic = counting_keyword(enron_data_file)
     words = count_combine(scam_dic, enron_dic)
     mail = count_combine(counting_mail(scam_mail_file),counting_mail(enron_mail_file))
     result = tfidf(words, mail)
-    store_file = write_blacklist(0,result,scam_dic, enron_dic)
+    store_file = write_blacklist(threshold,result,scam_dic, enron_dic)
     return store_file
 
 
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     # make raw data
     if len(sys.argv) == 5:
         # scam_data_file, enron_data_file, scam_mail_file, enron_mail_file
-        file = make_raw_list(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+        file = make_raw_list(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4], 0)
         print("[Output file] : ", file)
     # expand data
     elif len(sys.argv) == 2:
