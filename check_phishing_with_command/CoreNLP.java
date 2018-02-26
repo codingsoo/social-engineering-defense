@@ -17,7 +17,11 @@ public class CoreNLP {
         props.put("annotators", "tokenize, ssplit, pos, lemma");
         this.pipeline = new StanfordCoreNLP(props);
     }
-
+    
+    /*
+     *  input : sequence
+     *  output : list of lemmatized words
+     */
     public List<String> lemmatize(String s)
     {
         List<String> lemmas = new LinkedList<String>();

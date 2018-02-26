@@ -46,7 +46,6 @@ public class MakeBlacklist {
 		
 		Set<String> temp = obj.get(UnionFind(verb.get(verbWord)));
 		if(temp == null) {
-			//System.out.println(UnionFind(verb.get(verbWord)) + "null value");
 			return false;
 			}
 		
@@ -54,7 +53,6 @@ public class MakeBlacklist {
 		if(isNumber(objWord) && temp.contains(NUMBER)) return true; 
 		
 		if(!temp.contains(objWord)) {			
-			//System.out.println(UnionFind(verb.get(verbWord)) + "no value");
 			return false;
 		}
 		return true;

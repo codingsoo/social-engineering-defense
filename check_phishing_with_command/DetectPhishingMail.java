@@ -57,11 +57,13 @@ public class DetectPhishingMail {
 	private int rCount;
 	private int wCount;
 	private boolean test_mode;
+	private static boolean data_mode;
 
 	DetectPhishingMail(String blacklistName){
 		rCount = 0;
 		wCount = 0;
 		test_mode = false;
+		data_mode = false;
 		
 		writer = null;
 		wrong_writer = null;
@@ -73,7 +75,7 @@ public class DetectPhishingMail {
 		specialWord[3] = "kindly";
 		
 		lp = LexicalizedParser.loadModel(parserModel);
-		fileLocate = System.getProperty("user.dir") + "\\src\\";
+		fileLocate = System.getProperty("user.dir") + "\\";
 		
 		//Use Wordnet with jwi
 		cn = new CoreNLP();
@@ -112,6 +114,10 @@ public class DetectPhishingMail {
 		    	String verbWord = lem.get(tdl_i.gov().index()-1);
 		    	String objWord = lem.get(tdl_i.dep().index()-1);
 	    		
+		    	if(data_mode) {
+		    		writer.println(verbWord + " " + objWord);
+		    		continue;
+		    	}
 		    	if(test_mode) System.out.println("verb obj >" + verbWord + " " + objWord);
 		    	
 	    		//Judge if this sentence is malicious
@@ -150,7 +156,6 @@ public class DetectPhishingMail {
 			
 			//Store root verbs
 			VerbSet.add(temp.toString());
-			
 	    	if(test_mode) System.out.println("main verb >" + temp.toString());
 		}
 		return VerbSet;
@@ -399,9 +404,9 @@ public class DetectPhishingMail {
 						break;
 					}
 				}
-				if(writer != null) {
-					if(right) writer.print(1);
-					else writer.print(0);
+				if(writer != null && !data_mode) {
+					if(right) writer.println(1);
+					else writer.println(0);
 				}
 				if(count % 500 == 0) {
 					System.out.println("Á¤´ä :" + rightCount + " ´ä :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
@@ -424,6 +429,7 @@ public class DetectPhishingMail {
 		FileReader fr = null;
 		BufferedReader br = null;
 		int  count = 0;
+		boolean right = true;
 		try {
 			File f = new File(fileLocate + fileName);
 			if(!f.exists()) {
@@ -438,7 +444,12 @@ public class DetectPhishingMail {
 				
 				if(count++ % 100 == 0) System.out.println(count);
 				try {
-					checkMalicious(detectCommand(lp, value), value);
+					right = checkMalicious(detectCommand(lp, value), value);
+					
+					if(writer != null && !data_mode) {
+						if(right) writer.println(1);
+						else writer.println(0);
+					}
 				}
 				catch(OutOfMemoryError e) {
 					continue;
@@ -502,18 +513,34 @@ public class DetectPhishingMail {
 		}
 		
 		if(writer != null) {
-			//System.out.println(rCount + " " + wCount);
+			System.out.println("right count :" + rCount + " wrong count :" + wCount);
 			//writer.println(rCount + " " + wCount);
 			writer.close();
 		}
 	}
 
 	public static void main(String[] args){
-		//blacklist file name
-		DetectPhishingMail d = new DetectPhishingMail("result.txt");
-		
-		//verb+obj File or null , json or txt or null (input) , result or null 
-		d.check(null, "scam.json", "_result.txt");
-		//d.check(null,"scam.json","result_1102.txt");
+		// Extract keywords only
+		if(args.length == 2) {
+			DetectPhishingMail d = new DetectPhishingMail("result.txt");
+			data_mode = true;
+			d.check(null, args[0], args[1]);
+		}
+		else if(args.length == 4) {
+			//Parameter
+			
+			//0. blacklist file
+			DetectPhishingMail d = new DetectPhishingMail(args[0]);
+			
+			//1. keywords file : verb+obj File(make blacklist) or null(using blacklist)
+			//2. input file : json or text or null(input)
+			//3. output file : text file name or null (write or not) 
+			d.check(args[1],args[2],args[3]);
+		}
+		else {
+			DetectPhishingMail d = new DetectPhishingMail("result.txt");
+			System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
+			d.check(null,"malicious.txt","_result.txt");				
+		}
 	}
 }
