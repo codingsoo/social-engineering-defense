@@ -1,4 +1,4 @@
-# Social Engineering Defense
+﻿# Social Engineering Defense
 
 ## Purpose
 
@@ -34,17 +34,34 @@ what is your phone?
 
 You can see details in [form_item_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/form_item_detection).
 
-### Command Analysis
+### Sentence Type Identification
+Questions and commands are the types of sentences which are of interest because they might refer to private data or private operations. The identification of questions and commands analyzes the words in the sentence and the syntactic and typed dependency parse trees of the sentence which were created in the Sentence Processing step. You can see the detail in [sentence type identification folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_type_identification).
 
-1. Imperative
+### Command and Question Analysis
 
+We extract the command in four cases below.
+#### 1. Imperative
 This is to find the imperative sentences which generally start with the verb. 
+```
+Send me money!
+Let me know your information.
+```
+#### 2. Suggestion
+If there is a ‘you’ in front of the modal verb.
+```
+You should send me your address.
+You must call him.
+```
+#### 3. DesireExpression
+If the verb is included in desire verb
+```
+I hope you will give me the money.
+I want you to do these things.
+```
+#### 4. Question
+If there are ‘SQ’ tag or ‘SBARQ’ tag in parse result
 
-2. Suggestion
-3. DesireExpression
-4. Question
-
-### Check Malicious
+### Check Malicious with Blacklist
 
 We use blacklist for checking whether it's scam or not
 ```
@@ -52,6 +69,5 @@ transport money
 ship money
 send money
 notify we
-...
 ```
-### Question Analysis
+You can see the detail in [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command)
