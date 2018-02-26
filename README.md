@@ -36,6 +36,7 @@ You can see details in [form_item_detection folder](https://github.com/zerobugpl
 
 ### Command Analysis
 
+We extract the command in four cases below.
 #### 1. Imperative
 This is to find the imperative sentences which generally start with the verb. 
 ```
@@ -65,6 +66,7 @@ transport money
 ship money
 send money
 notify we
-...
 ```
+You can see the detail in [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command/README.md)
+
 ### Question Analysis
