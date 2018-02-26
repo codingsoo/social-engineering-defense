@@ -90,7 +90,7 @@ input file : json or text or null(input)
 output file : text file name or null (write or not)
             [1,0,1,1....] (malicious or not)
 
-## Calculate Accuracy
+# 4. Calculate Accuracy
 Extract 100000 mail from scam_data.json
 we got imperative sentences from extracted 100000 mail each scam and non-scam
 we got verb & obj sets from imperative sentences.
