@@ -1,4 +1,4 @@
-# Extract keywords
+# 1. Extract keywords
 > DetectPhishingMail.java
 
 ### External JARs
@@ -43,7 +43,7 @@ java -cp <jar list> <input_file> <output_file>
 * output_file : text file name or null (write or not) 
               [verb obj\n ...]
 
-# TFIDF & Data expansion for making blacklist
+# 2. TFIDF & Data expansion for making blacklist
 > lesk.py
 
 ## Python version
@@ -78,7 +78,9 @@ Add synonym words using lesk algorithm and refine words
 
 * input, output : [verb obj\n]
 
-### Check malicious sentence
+# 3. Check malicious sentence
+> DetectPhishingMail.java
+
 ```
 java -cp <jar list> <blacklist file> <keywords file> <input_file> <output_file>
 ```
