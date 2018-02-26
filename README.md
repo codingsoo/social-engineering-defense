@@ -36,15 +36,28 @@ You can see details in [form_item_detection folder](https://github.com/zerobugpl
 
 ### Command Analysis
 
-1. Imperative
-
+#### 1. Imperative
 This is to find the imperative sentences which generally start with the verb. 
+```
+Send me money!
+Let me know your information.
+```
+#### 2. Suggestion
+If there is a ‘you’ in front of the modal verb.
+```
+You should send me your address.
+You must call him.
+```
+#### 3. DesireExpression
+If the verb is included in desire verb
+```
+I hope you will give me the money.
+I want you to do these things.
+```
+#### 4. Question
+If there are ‘SQ’ tag or ‘SBARQ’ tag in parse result
 
-2. Suggestion
-3. DesireExpression
-4. Question
-
-### Check Malicious
+### Check Malicious with Blacklist
 
 We use blacklist for checking whether it's scam or not
 ```
