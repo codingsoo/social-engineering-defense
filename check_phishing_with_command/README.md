@@ -32,12 +32,12 @@ Java implementation of probabilistic natural language parsers.
 We used wordnet 3.0 dictionary [here](http://wordnet.princeton.edu/wordnet/download/current-version/)
 
 ```
-javac -classpath "[jarname with specified path]" [java filename]
+javac -classpath <jar list and location> <java file and location>
 ```
 
 ### Keywords extraction
 ```
-java -cp <jar list> <input_file> <output_file>
+java -classpath <jar list and location> <input_file> <output_file>
 ```
 * input_file : json or text or null(input)
 * output_file : text file name or null (write or not) 
