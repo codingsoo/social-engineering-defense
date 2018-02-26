@@ -82,7 +82,7 @@ Add synonym words using lesk algorithm and refine words
 > DetectPhishingMail.java
 
 ```
-java -cp <jar list> <blacklist file> <keywords file> <input_file> <output_file>
+java -classpath <jar list and location> <blacklist file> <keywords file> <input_file> <output_file>
 ```
 blacklist file : blacklist name
 keywords file : verb+obj File(make blacklist) or null(using blacklist)
