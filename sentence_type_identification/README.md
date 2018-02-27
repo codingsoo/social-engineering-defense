@@ -57,7 +57,8 @@ If the sentence has a desire verb and pronoun 'you' in 'dobj' dependency, we ext
 
 ## Question Detection
 Question detection is straightforward using the syntactic parse tree of the sentence. There are two types of questions. 
-
+* Closed questions are detected by SQ tag.
+* Open questions are detected by SBARQ tag.
 
 ### Development environment
 * Windows 10
