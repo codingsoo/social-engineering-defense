@@ -31,13 +31,16 @@ Java implementation of probabilistic natural language parsers.
 ### Dictionary
 We used wordnet 3.0 dictionary [here](http://wordnet.princeton.edu/wordnet/download/current-version/)
 
-```
-javac -classpath <jar list and location> <java file and location>
-```
-
 ### Keywords extraction
 ```
-java -classpath <jar list and location> <input_file> <output_file>
+javac -cp <jar list and location> <java file and location>
+window ex) javac -cp D:dev\jar\*; DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
+
+```
+
+```
+java -cp <jar list and location> <input_file> <output_file>
+window ex) java -cp D:dev\jar\*; DetectPhishingMail "input.txt" "null"
 ```
 * input_file : json or text or null(input)
 * output_file : text file name or null (write or not) 
