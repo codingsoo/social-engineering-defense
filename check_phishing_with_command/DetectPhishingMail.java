@@ -409,7 +409,7 @@ public class DetectPhishingMail {
 					else writer.println(0);
 				}
 				if(count % 500 == 0) {
-					System.out.println("Á¤´ä :" + rightCount + " ´ä :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
+					System.out.println("ÃÂ¤Â´Ã¤ :" + rightCount + " Â´Ã¤ :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
 				}
 			}
 			
@@ -479,12 +479,12 @@ public class DetectPhishingMail {
 	public void check(String wordDataFile, String sentDataFile, String resultFile ){
 		
 		//Make BlackList Mode
-		if(wordDataFile != null) {
+		if(wordDataFile != "0") {
 			BL.saveBlacklist(fileLocate + wordDataFile);
 		}
 				
 		// Save Mode
-		if(resultFile != null) {
+		if(resultFile != "0") {
 			try {				
 				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
@@ -496,7 +496,7 @@ public class DetectPhishingMail {
 			}
 		}
 		//line input mode
-		if(sentDataFile == null) {
+		if(sentDataFile == "0") {
 			System.out.println(" test sentence >> ");
 			test_mode = true;
 			readTextLine();
@@ -512,7 +512,7 @@ public class DetectPhishingMail {
 			readTextFile(sentDataFile);	
 		}
 		
-		if(writer != null) {
+		if(writer != "0") {
 			System.out.println("right count :" + rCount + " wrong count :" + wCount);
 			//writer.println(rCount + " " + wCount);
 			writer.close();
@@ -524,7 +524,7 @@ public class DetectPhishingMail {
 		if(args.length == 2) {
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			data_mode = true;
-			d.check(null, args[0], args[1]);
+			d.check("0", args[0], args[1]);
 		}
 		else if(args.length == 4) {
 			//Parameter
@@ -540,7 +540,7 @@ public class DetectPhishingMail {
 		else {
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
-			d.check(null,"malicious.txt","_result.txt");				
+			d.check("0","malicious.txt","_result.txt");				
 		}
 	}
 }
