@@ -4,6 +4,31 @@
 
 We present an approach which analyzes attack content to detect inappropriate statements which are indicative of social engineering attacks.
 
+## Demo
+
+We provide docker demo. 
+
+```
+docker pull learnitdeep/social-engineering-defense
+```
+
+Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web), and unzip it to /workdir folder of your docker container.
+
+Then you need to run paralex server.
+
+```
+cd /workdir/social-engineering-defense/paralex-evaluation-test/
+./scripts/social-engineering-defense/start_nlp.sh & # start nlp server
+./scripts/social-engineering-defense/start_demo.sh & # start demo server
+```
+
+Our demo file is located in /workdir/check_phishing_with_command/demo.py.
+
+```
+cd /workdir/social-engineering-defense/check_phishing_with_command
+python demo.py what is your password # Beep! Scam detected.
+```
+
 ## System Structure
 
 ![system_structure](https://github.com/learnitdeep/social-engineering-defense/blob/master/system_structure.png)  
@@ -78,6 +103,7 @@ Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh
 
 ```
 unzip paralex-evaluation-test.zip
+cd paralex-evaluation-test
 ./scripts/start_nlp.sh & # start nlp server
 ./scripts/start_demo.sh & # start demo server
 ```
