@@ -71,3 +71,18 @@ send money
 notify we
 ```
 You can see the detail in [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command)
+
+### Check Malicious with Question Answering System(Paralex)
+
+Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web).  
+
+```
+unzip paralex-evaluation-test.zip
+./scripts/start_nlp.sh & # start nlp server
+./scripts/start_demo.sh & # start demo server
+```
+Once the demo is running, you can make HTTP requests to Paralex and get JSON objects as output. 
+```
+curl http://localhost:8083/parse?sent=What+is+your+password # "answers": ["confidential.e"]
+curl http://localhost:8083/parse?sent=Who+invented+pizza # have no ["confidential.e"] answers
+```
