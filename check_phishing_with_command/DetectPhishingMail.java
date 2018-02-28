@@ -409,7 +409,7 @@ public class DetectPhishingMail {
 					else writer.println(0);
 				}
 				if(count % 500 == 0) {
-					System.out.println("Á¤´ä :" + rightCount + " ´ä :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
+					System.out.println("정답 :" + rightCount + " 답 :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
 				}
 			}
 			
@@ -477,14 +477,12 @@ public class DetectPhishingMail {
 	 *result File : writer File
 	 */
 	public void check(String wordDataFile, String sentDataFile, String resultFile ){
-		
 		//Make BlackList Mode
-		if(wordDataFile != "0") {
+		if(wordDataFile.equals("null")) {
 			BL.saveBlacklist(fileLocate + wordDataFile);
-		}
-				
+		}				
 		// Save Mode
-		if(resultFile != "0") {
+		if(resultFile.equals("null")) {
 			try {				
 				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
@@ -496,7 +494,7 @@ public class DetectPhishingMail {
 			}
 		}
 		//line input mode
-		if(sentDataFile == "0") {
+		if(sentDataFile.equals("null")) {
 			System.out.println(" test sentence >> ");
 			test_mode = true;
 			readTextLine();
@@ -522,8 +520,11 @@ public class DetectPhishingMail {
 	public static void main(String[] args){
 		// Extract keywords only
 		if(args.length == 2) {
+			//0. input file : json or text or null(input)
+			//1. output file : text file name or null (write or not) 
+			
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
-			data_mode = true;
+			d.data_mode = true;
 			d.check("0", args[0], args[1]);
 		}
 		else if(args.length == 4) {
