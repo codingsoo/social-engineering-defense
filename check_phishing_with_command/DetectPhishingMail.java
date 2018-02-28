@@ -525,7 +525,7 @@ public class DetectPhishingMail {
 			
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			d.data_mode = true;
-			d.check("0", args[0], args[1]);
+			d.check("null", args[0], args[1]);
 		}
 		else if(args.length == 4) {
 			//Parameter
@@ -541,7 +541,7 @@ public class DetectPhishingMail {
 		else {
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
-			d.check("0","malicious.txt","_result.txt");				
+			d.check("null","malicious.txt","_result.txt");				
 		}
 	}
 }
