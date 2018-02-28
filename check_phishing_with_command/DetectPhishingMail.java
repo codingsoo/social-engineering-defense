@@ -512,7 +512,7 @@ public class DetectPhishingMail {
 			readTextFile(sentDataFile);	
 		}
 		
-		if(writer != "0") {
+		if(writer != null) {
 			System.out.println("right count :" + rCount + " wrong count :" + wCount);
 			//writer.println(rCount + " " + wCount);
 			writer.close();
