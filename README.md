@@ -14,7 +14,8 @@ docker pull learnitdeep/social-engineering-defense
 
 Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web), and unzip it to /workdir folder of your docker container.
 
-Then you need to run paralex server.
+Then you need to run paralex server.  
+I recommand to use terminal multiplexer like tmux.
 
 ```
 cd /workdir/social-engineering-defense/paralex-evaluation-test/
