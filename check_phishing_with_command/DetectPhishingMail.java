@@ -478,11 +478,11 @@ public class DetectPhishingMail {
 	 */
 	public void check(String wordDataFile, String sentDataFile, String resultFile ){
 		//Make BlackList Mode
-		if(wordDataFile.equals("null")) {
+		if(!wordDataFile.equals("null")) {
 			BL.saveBlacklist(fileLocate + wordDataFile);
 		}				
 		// Save Mode
-		if(resultFile.equals("null")) {
+		if(!resultFile.equals("null")) {
 			try {				
 				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
