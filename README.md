@@ -4,6 +4,34 @@
 
 We present an approach which analyzes attack content to detect inappropriate statements which are indicative of social engineering attacks.
 
+## Demo
+
+We provide docker demo. 
+You can download docker image on dockerhub.
+Make sure that login dockerhub before pull our image.
+```
+docker login
+docker pull learnitdeep/social-engineering-defense
+```
+
+Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web), and unzip it to /workdir folder of your docker container.
+
+Then you need to run paralex server.  
+I recommand to use terminal multiplexer like tmux.
+
+```
+cd /workdir/social-engineering-defense/paralex-evaluation-test/
+./scripts/social-engineering-defense/start_nlp.sh & # start nlp server
+./scripts/social-engineering-defense/start_demo.sh & # start demo server
+```
+
+Our demo file is located in /workdir/check_phishing_with_command/demo.py.
+
+```
+cd /workdir/social-engineering-defense/check_phishing_with_command
+python demo.py what is your password # Beep! Scam detected.
+```
+
 ## System Structure
 
 ![system_structure](https://github.com/learnitdeep/social-engineering-defense/blob/master/system_structure.png)  
@@ -71,3 +99,19 @@ send money
 notify we
 ```
 You can see the detail in [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command)
+
+### Check Malicious with Question Answering System(Paralex)
+
+Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web).  
+
+```
+unzip paralex-evaluation-test.zip
+cd paralex-evaluation-test
+./scripts/start_nlp.sh & # start nlp server
+./scripts/start_demo.sh & # start demo server
+```
+Once the demo is running, you can make HTTP requests to Paralex and get JSON objects as output. 
+```
+curl http://localhost:8083/parse?sent=What+is+your+password # "answers": ["confidential.e"]
+curl http://localhost:8083/parse?sent=Who+invented+pizza # have no ["confidential.e"] answers
+```
