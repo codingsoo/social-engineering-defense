@@ -111,10 +111,3 @@ fail to detect : 68510
 
 * Precision : 76.3%	
 * Recall : 68.6%
-
-
----
-### Development evironment
-* Window 10
-* Eclipse Oxygen.2
-* Pycharm professional
