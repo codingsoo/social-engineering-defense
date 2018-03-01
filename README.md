@@ -7,8 +7,10 @@ We present an approach which analyzes attack content to detect inappropriate sta
 ## Demo
 
 We provide docker demo. 
-
+You can download docker image on dockerhub.
+Make sure that login dockerhub before pull our image.
 ```
+docker login
 docker pull learnitdeep/social-engineering-defense
 ```
 
