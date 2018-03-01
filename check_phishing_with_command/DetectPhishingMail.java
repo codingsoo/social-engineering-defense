@@ -75,7 +75,7 @@ public class DetectPhishingMail {
 		specialWord[3] = "kindly";
 		
 		lp = LexicalizedParser.loadModel(parserModel);
-		fileLocate = System.getProperty("user.dir") + "\\";
+		fileLocate = System.getProperty("user.dir") + "/";
 		
 		//Use Wordnet with jwi
 		cn = new CoreNLP();
@@ -343,19 +343,31 @@ public class DetectPhishingMail {
 	/*
 	 * Read sentences from user input. 
 	 */
-	public void readTextLine() {
-		Scanner scanner = new Scanner(System.in);
-		while (scanner.hasNext()) {
-			String value = scanner.nextLine();
-			try {
-				if(value.equals("exit")) return;
-				System.out.println(checkMalicious(detectCommand(lp, value), value));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		scanner.close();
-	}
+    public void readTextLine() {
+
+         Scanner scanner = new Scanner(System.in);
+         while (scanner.hasNext()) {
+         String value = scanner.nextLine();
+         try {
+         if(value.equals("exit")) return;
+         System.out.println(checkMalicious(detectCommand(lp, value), value));
+         } catch (IOException e) {
+         e.printStackTrace();
+         }
+         }
+         scanner.close();
+
+
+    }
+    
+    public void readTextLine2(String value) {
+        try {
+            if(value.equals("exit")) return;
+            System.out.println(checkMalicious(detectCommand(lp, value), value));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 	
 	public int passFile(int count, String fileName, int dataSize) {
 		int existCount = count;
@@ -409,7 +421,7 @@ public class DetectPhishingMail {
 					else writer.println(0);
 				}
 				if(count % 500 == 0) {
-					System.out.println("정답 :" + rightCount + " 답 :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
+					System.out.println("true :" + rightCount + " answer :" + (count - existCount) +  " percent" + (rightCount*100/(count - existCount)));
 				}
 			}
 			
@@ -439,7 +451,7 @@ public class DetectPhishingMail {
 	    	fr = new FileReader(fileLocate + fileName);
 	    	br = new BufferedReader(fr);
 			String value;
-			while ((value = br.readLine()) != null) {
+            while ((value = br.readLine()) != null) {
 				value = WordUtils.capitalizeFully(value, new char[] { '.' });
 				
 				if(count++ % 100 == 0) System.out.println(count);
@@ -538,10 +550,17 @@ public class DetectPhishingMail {
 			//3. output file : text file name or null (write or not) 
 			d.check(args[1],args[2],args[3]);
 		}
-		else {
-			DetectPhishingMail d = new DetectPhishingMail("result.txt");
-			System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
-			d.check("null","malicious.txt","_result.txt");				
+		else if(args.length > 4) {
+            String senten = args[4];
+            for(int i=5; i<args.length; i++) {
+                senten = senten + ' ' +args[i];
+            }
+            DetectPhishingMail d = new DetectPhishingMail(args[0]);
+            d.readTextLine2(senten);
+            
+			//DetectPhishingMail d = new DetectPhishingMail("result.txt");
+			//System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
+			//d.check("null","malicious.txt","_result.txt");
 		}
 	}
 }
