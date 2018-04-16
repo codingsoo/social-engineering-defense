@@ -46,7 +46,6 @@ public class DetectPhishingMail {
 	private String fileLocate;
 	private String[] specialWord;
 	private PrintWriter writer;
-	private PrintWriter wrong_writer;
 	
 	private LexicalizedParser lp;	
 	private String parserModel = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
@@ -55,18 +54,17 @@ public class DetectPhishingMail {
 	private MakeBlacklist BL;
 
 	private int rCount;
-	private int wCount;
+	private int allCount;
 	private boolean test_mode;
 	private static boolean data_mode;
 
 	DetectPhishingMail(String blacklistName){
 		rCount = 0;
-		wCount = 0;
+		allCount = 0;
 		test_mode = false;
 		data_mode = false;
 		
 		writer = null;
-		wrong_writer = null;
 		
 		specialWord = new String[4];
 		specialWord[0] = "hope";
@@ -314,7 +312,6 @@ public class DetectPhishingMail {
 			return true;
 		}
 		else {
-			wCount++;
 			//about right sentence
 			/*
 			if(wrong_writer != null) {
@@ -375,19 +372,16 @@ public class DetectPhishingMail {
 	 */
 	public void readJsonFile(String fileName, String resultFile) throws IllegalStateException{
 		try {
-			int count = 0,existCount = 0, rightCount = 0;
 			JsonReader reader = new JsonReader(new FileReader(fileLocate + fileName));
 			reader.beginArray();	
 			while(reader.hasNext()) {
-				
-				count++;
+				allCount++;
 				boolean right = false;
 				List<String> sentences = readJsonArray(reader);
 				for (String value : sentences) {
 					value = WordUtils.capitalizeFully(value, new char[] { '.' });
 					if(checkMalicious(detectCommand(lp, value), value)) {
 						right = true;
-						rightCount++;
 						break;
 					}
 				}
@@ -423,10 +417,10 @@ public class DetectPhishingMail {
 	    	fr = new FileReader(fileLocate + fileName);
 	    	br = new BufferedReader(fr);
 			String value;
+			allCount++;
 			while ((value = br.readLine()) != null) {
 				value = WordUtils.capitalizeFully(value, new char[] { '.' });
 				
-				if(count++ % 100 == 0) System.out.println(count);
 				try {
 					right = checkMalicious(detectCommand(lp, value), value);
 					
@@ -462,11 +456,11 @@ public class DetectPhishingMail {
 	 */
 	public void check(String wordDataFile, String sentDataFile, String resultFile ){
 		//Make BlackList Mode
-		if(wordDataFile.equals("null")) {
+		if(!wordDataFile.equals("null")) {
 			BL.saveBlacklist(fileLocate + wordDataFile);
 		}				
 		// Save Mode
-		if (!resultFile.equals("null")) {
+		if(!resultFile.equals("null")) {
 			try {				
 				System.out.println("-- save mode " + resultFile);
 				File f = new File(fileLocate + resultFile);
@@ -495,8 +489,7 @@ public class DetectPhishingMail {
 		}
 		
 		if(writer != null) {
-			System.out.println("right count :" + rCount + " wrong count :" + wCount);
-			//writer.println(rCount + " " + wCount);
+			System.out.println("right count :" + rCount + " wrong count :"+ (allCount - rCount - 1));
 			writer.close();
 		}
 	}
@@ -509,7 +502,7 @@ public class DetectPhishingMail {
 			
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			d.data_mode = true;
-			d.check("0", args[0], args[1]);
+			d.check("null", args[0], args[1]);
 		}
 		else if(args.length == 4) {
 			//Parameter
@@ -525,7 +518,7 @@ public class DetectPhishingMail {
 		else {
 			DetectPhishingMail d = new DetectPhishingMail("result.txt");
 			System.out.println("[input : Blacklist file name, keywords file, input file, output file]");
-			d.check("0","test_data_100.json","_result.txt");				
+			d.check("null","test_data_100.json","_result.txt");				
 		}
 	}
 }
