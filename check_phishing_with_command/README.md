@@ -33,13 +33,15 @@ We used wordnet 3.0 dictionary [here](http://wordnet.princeton.edu/wordnet/downl
 
 ### Keywords extraction
 ```
-javac -cp <jar list and location> <java file and location>
+javac -cp <jar file path> <java file and location>
+max  ex) javac -cp D:dev\jar\*: DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 window ex) javac -cp D:dev\jar\*; DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 
 ```
 
 ```
-java -cp <jar list and location> <input_file> <output_file>
+java -cp <jar file path> <input_file> <output_file>
+mac ex) java -cp D:dev\jar\*: DetectPhishingMail "input.txt" "null"
 window ex) java -cp D:dev\jar\*; DetectPhishingMail "input.txt" "null"
 ```
 * input_file : json or text or null(input)
@@ -85,7 +87,9 @@ Add synonym words using lesk algorithm and refine words
 > DetectPhishingMail.java
 
 ```
-java -classpath <jar list and location> <blacklist file> <keywords file> <input_file> <output_file>
+java -cp <jar list and location> <blacklist file> <keywords file> <input_file> <output_file>
+mac : java -cp  <jar file path>\*: DetectPhishingMail "result.txt" "null" "null" "temp.txt"
+window : java -cp  <jar file path>\*; DetectPhishingMail "result.txt" "null" "null" "temp.txt"
 ```
 blacklist file : blacklist name
 keywords file : verb+obj File(make blacklist) or null(using blacklist)
