@@ -70,12 +70,14 @@ we use high score 0.45% keywords
 python lesk.py <scam data file> <enron data file> <scam mail file> <enron data file>
 ```
 * input
+
 scam data file, enron data file : text file with every keywords in whole mail 
 
 scam_mail_file, enron_mail_file : text file with every keywords in whole mail but non-overlapping keywords in the one mail
 
 * output
-  sorted keywords file by TFIDF
+
+sorted keywords file by TFIDF
 
 ## Data expansion
 ```
