@@ -1,4 +1,4 @@
-﻿# Social Engineering Defense
+# Social Engineering Defense
 
 ## Purpose
 
@@ -14,15 +14,15 @@ docker login
 docker pull learnitdeep/social-engineering-defense
 ```
 
-Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web), and unzip it to /workdir folder of your docker container.
+Please download our [file](https://drive.google.com/open?id=1PednH4FkW6GHEwZmr-Q0hky2OtWK1g-m), and unzip it to /workdir folder of your docker container.
 
 Then you need to run paralex server.  
 I recommand to use terminal multiplexer like tmux.
 
 ```
 cd /workdir/social-engineering-defense/paralex-evaluation-test/
-./scripts/social-engineering-defense/start_nlp.sh & # start nlp server
-./scripts/social-engineering-defense/start_demo.sh & # start demo server
+./scripts/start_nlp.sh & # start nlp server
+./scripts/start_demo.sh & # start demo server
 ```
 
 Our demo file is located in /workdir/check_phishing_with_command/demo.py.
