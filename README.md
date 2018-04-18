@@ -14,7 +14,12 @@ docker login
 docker pull learnitdeep/social-engineering-defense
 ```
 
-Please download our [file](https://drive.google.com/open?id=1PednH4FkW6GHEwZmr-Q0hky2OtWK1g-m), and unzip it to /workdir folder of your docker container.
+Please download our [file](https://drive.google.com/open?id=1PednH4FkW6GHEwZmr-Q0hky2OtWK1g-m), and unzip it to /workdir folder of your docker container. you can link your computer's directory and docker containers directory with -v option.  
+  
+This is the example.
+```
+docker run -it -v /Users/learnitdeep/Desktop/social-engineering-defense/:/workdir learnitdeep/social-engineering-defense
+```
 
 Then you need to run paralex server.  
 I recommand to use terminal multiplexer like tmux.
