@@ -92,7 +92,7 @@ mac : java -cp  <jar file path>\*: DetectPhishingMail "result.txt" "null" "null"
 window : java -cp  <jar file path>\*; DetectPhishingMail "result.txt" "null" "null" "temp.txt"
 ```
 blacklist file : blacklist name("result.txt")
-keywords file : verb+obj File("word.txt") or null(using blacklist)
+keywords file : verb+obj File("data.txt") or null(using blacklist)
 input file : json or text or null(keyboard input)
 output file : text file name or null (write or not)
             [1,0,1,1....] (malicious or not)
