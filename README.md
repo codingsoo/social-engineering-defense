@@ -1,4 +1,4 @@
-﻿# Social Engineering Defense
+# Social Engineering Defense
 
 ## Purpose
 
@@ -14,21 +14,30 @@ docker login
 docker pull learnitdeep/social-engineering-defense
 ```
 
-Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web), and unzip it to /workdir folder of your docker container.
+Please download our [file](https://drive.google.com/open?id=1AFKGLJj_JQnPhbi42SCzQdMrTWIKJPz6), and unzip it. you can link your computer's directory and docker containers directory with -v option.  
+  
+This is the example.
+```
+docker run -it -v /Users/learnitdeep/Desktop/social-engineering-defense-v1.0/:/workdir learnitdeep/social-engineering-defense
+```
 
 Then you need to run paralex server.  
-I recommand to use terminal multiplexer like tmux.
-
 ```
 cd /workdir/social-engineering-defense/paralex-evaluation-test/
-./scripts/social-engineering-defense/start_nlp.sh & # start nlp server
-./scripts/social-engineering-defense/start_demo.sh & # start demo server
+./scripts/start_nlp.sh & # start nlp server
+./scripts/start_demo.sh & # start demo server
 ```
 
-Our demo file is located in /workdir/check_phishing_with_command/demo.py.
-
+Our demo file is located in /check_phishing_with_command/demo.py.
+First, you need to compile java files.
 ```
 cd /workdir/social-engineering-defense/check_phishing_with_command
+javac -cp "./jar/*" DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
+```
+
+Now you can use our demo!
+
+```
 python demo.py what is your password # Beep! Scam detected.
 ```
 

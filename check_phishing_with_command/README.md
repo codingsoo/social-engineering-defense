@@ -33,13 +33,15 @@ We used wordnet 3.0 dictionary [here](http://wordnet.princeton.edu/wordnet/downl
 
 ### Keywords extraction
 ```
-javac -cp <jar list and location> <java file and location>
+javac -cp <jar file path> <java file and location>
+max  ex) javac -cp D:dev\jar\*: DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 window ex) javac -cp D:dev\jar\*; DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 
 ```
 
 ```
-java -cp <jar list and location> <input_file> <output_file>
+java -cp <jar file path> <input_file> <output_file>
+mac ex) java -cp D:dev\jar\*: DetectPhishingMail "input.txt" "null"
 window ex) java -cp D:dev\jar\*; DetectPhishingMail "input.txt" "null"
 ```
 * input_file : json or text or null(input)
@@ -68,10 +70,14 @@ we use high score 0.45% keywords
 python lesk.py <scam data file> <enron data file> <scam mail file> <enron data file>
 ```
 * input
+
 scam data file, enron data file : text file with every keywords in whole mail 
+
 scam_mail_file, enron_mail_file : text file with every keywords in whole mail but non-overlapping keywords in the one mail
+
 * output
-  sorted keywords file by TFIDF
+
+sorted keywords file by TFIDF
 
 ## Data expansion
 ```
@@ -85,11 +91,13 @@ Add synonym words using lesk algorithm and refine words
 > DetectPhishingMail.java
 
 ```
-java -classpath <jar list and location> <blacklist file> <keywords file> <input_file> <output_file>
+java -cp <jar list and location> <blacklist file> <keywords file> <input_file> <output_file>
+mac : java -cp  <jar file path>\*: DetectPhishingMail "result.txt" "null" "null" "temp.txt"
+window : java -cp  <jar file path>\*; DetectPhishingMail "result.txt" "null" "null" "temp.txt"
 ```
-blacklist file : blacklist name
-keywords file : verb+obj File(make blacklist) or null(using blacklist)
-input file : json or text or null(input)
+blacklist file : blacklist name("result.txt")
+keywords file : verb+obj File("data.txt") or null(using blacklist)
+input file : json or text or null(keyboard input)
 output file : text file name or null (write or not)
             [1,0,1,1....] (malicious or not)
 

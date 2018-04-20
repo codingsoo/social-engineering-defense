@@ -72,7 +72,6 @@ public class MakeBlacklist {
 				String[] data = s.split(" ");
 
 				if(data.length < 2) continue;
-				//null인 경우 사전에 없는 단어
 				String val = data[1];
 				if(data[1].equals(null)) val = data[0];
 				verb.put(data[0],val);
