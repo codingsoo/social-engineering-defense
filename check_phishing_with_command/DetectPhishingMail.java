@@ -73,7 +73,7 @@ public class DetectPhishingMail {
 		specialWord[3] = "kindly";
 		
 		lp = LexicalizedParser.loadModel(parserModel);
-		fileLocate = System.getProperty("user.dir") + "\\";
+		fileLocate = System.getProperty("user.dir") + "/";
 		
 		//Use Wordnet with jwi
 		cn = new CoreNLP();
