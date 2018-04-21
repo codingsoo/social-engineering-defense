@@ -124,3 +124,9 @@ Now you can use our demo!
 ```
 python demo.py what is your password # Beep! Scam detected.
 ```
+
+## Ongoing work
+
+- Make punctuator faster(using different model)
+- Collect other text data apart from emails
+- improve form detecting algorithm
