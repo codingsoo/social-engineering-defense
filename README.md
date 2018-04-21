@@ -1,8 +1,28 @@
 # Social Engineering Defense
 
-## Abstract
+## Purpose
 
-Frauds get trickier day by day. Email or massage system such as Gmail, yahoo mail, facebook massage app have hard time to catch them. Because these systems are not able to defense all of scam data, there are many communities to share opinions whether their recieved emails are scam or not. We present a new social engineering defense system based on text analyzing. We devided text data into 3 parts - forms, questions, commands. They are the common ways to get information that scammers want. Our system analyze them for each categories, and give a warning for scam texts. We [crawl scam data](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails) from scam sharing communities(most of them are the scams that current system cannot catch), and find a good result.
+The purpose of this project is to detect scam e-mails based on text analysis. This repository includes e-mail crawling, sentence processing, sentence type identification, form item detection, command analysis and question analysis. We used open-source projects for each steps as follows.
+
+- Crawling
+ - Beautifulsoup for crawling data
+ - Langid for selecting English data
+- Sentence Processing
+ - Punctuator2 for punctuating
+ - Punkt Algorithm(nltk) for sentence tokenizing
+- Sentence Type Identification
+ - Corenlp for finding word dependency tree
+ - Stanford Parser for POS tagging
+- Question Analysis
+ - Paralex for detecting question scams.
+- Command Analysis
+ - edu.mit.jwi_2.4.0.jar for using wordnet
+ - gson-2.8.0.jar for using json
+ - commons-lang-2.6.jar for capitalization
+ - Corenlp for finding word dependency tree
+ - Stanford Parser for POS tagging
+ 
+The structure of our social engineering defense system is as shown in the following figure.
 
 ## System Structure
 
