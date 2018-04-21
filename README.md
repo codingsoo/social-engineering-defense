@@ -5,22 +5,22 @@
 The purpose of this project is to detect scam e-mails based on text analysis. This repository includes e-mail crawling, sentence processing, sentence type identification, form item detection, command analysis and question analysis. We used open-source projects for each steps as follows.
 
 - Crawling
- - Beautifulsoup for crawling data
- - Langid for selecting English data
+  - Beautifulsoup for crawling data
+  - Langid for selecting English data
 - Sentence Processing
- - Punctuator2 for punctuating
- - Punkt Algorithm(nltk) for sentence tokenizing
+  - Punctuator2 for punctuating
+  - Punkt Algorithm(nltk) for sentence tokenizing
 - Sentence Type Identification
- - Corenlp for finding word dependency tree
- - Stanford Parser for POS tagging
+  - Corenlp for finding word dependency tree
+  - Stanford Parser for POS tagging
 - Question Analysis
- - Paralex for detecting question scams.
+  - Paralex for detecting question scams.
 - Command Analysis
- - edu.mit.jwi_2.4.0.jar for using wordnet
- - gson-2.8.0.jar for using json
- - commons-lang-2.6.jar for capitalization
- - Corenlp for finding word dependency tree
- - Stanford Parser for POS tagging
+  - edu.mit.jwi_2.4.0.jar for using wordnet
+  - gson-2.8.0.jar for using json
+  - commons-lang-2.6.jar for capitalization
+  - Corenlp for finding word dependency tree
+  - Stanford Parser for POS tagging
  
 The structure of our social engineering defense system is as shown in the following figure.
 
