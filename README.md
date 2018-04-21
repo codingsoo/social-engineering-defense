@@ -30,15 +30,15 @@ The structure of our social engineering defense system is as shown in the follow
 
 ### Data
 
-We use email data, but input can be any text-data. You can crawl email data in [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails), or you can use [pre-crawled email data](https://drive.google.com/file/d/1D8BUS_wxZVip6EFmhMkrXunBXcuBev7o/view?usp=sharing). You can see detail code in [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails)
+We use e-mail data, but input can be any text data. You can crawl e-mail data in the [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails), or you can use [pre-crawled e-mail data](https://drive.google.com/file/d/1D8BUS_wxZVip6EFmhMkrXunBXcuBev7o/view?usp=sharing). You can see detail code in the [crawl_mails folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/crawl_mails)
 
 ### Sentence Processing
 
-Analyzing scam data is hard because they destroy grammar on purpose. The most critical point is they don't have right punctuations. It is almost impossible to break down into sentences without punctuations. We used [punctuator2](https://github.com/ottokart/punctuator2) for solving this problem. Then we detect sentence boundary with Punkt tool. It finds periods, but can distinguish whether it is used for ending sentences or abbreviations. You can see details in [sentence_boundary_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_boundary_detection). You can use [pre-sentence-tokenized email data](https://drive.google.com/open?id=1_LHcOVE0A3hd1mBwZl-o4ivSfu42IGJV).
+Analyzing scam data is difficult because they destroy grammar on purpose. The most critical point is they don't have right punctuations. It is really hard to break down into sentences without punctuations. We use [punctuator2](https://github.com/ottokart/punctuator2) for solving this problem. Then we detect sentence boundary with Punkt tool. It finds not only periods, but also can distinguish whether it is used for ending a sentence or abbreviation. You can see details in the [sentence_boundary_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_boundary_detection). You can use [pre-sentence-tokenized e-mail data](https://drive.google.com/open?id=1_LHcOVE0A3hd1mBwZl-o4ivSfu42IGJV).
 
 ### Form Item Detection
 
-If your data has no form, you can skip this section. However, if you use our data, or something with form, you should transform form to question.  
+If your data has no form, you can skip this section. However, if you use our data or something with form, you should transform forms into questions.  
 ```
 please fill this form
 NAME : ___________________
@@ -52,11 +52,11 @@ what is your job?
 what is your phone?
 ```
 
-You can see details in [form_item_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/form_item_detection).
+You can see details in the [form_item_detection folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/form_item_detection).
 
 ### Sentence Type Identification
 
-Scammers get information through questions or commands. Since we provide different approach for these two categories, we used POS tagger which is provided from stanford(coreNLP) to identifying them. This tagger draws the syntactic and type dependency parse trees of sentences. We extract the commands in four cases below.
+Scammers get information through questions and commands. Since we provide the different approach for these two categories, we used POS tagger which is provided from Stanford(coreNLP) to identify them. This tagger draws the syntactic and type dependency parse trees of sentences. We extract the commands in four cases below.
 
 #### 1. Imperative
 We find the imperative sentences which generally start with the verb. 
@@ -65,35 +65,35 @@ Send me money!
 Let me know your information.
 ```
 #### 2. Suggestion
-If there is a ‘you’ in front of the modal verb, we detect it as command.
+If there is a ‘you’ in front of the modal verb, we detect it as a command.
 ```
 You should send me your address.
 You must call him.
 ```
 #### 3. DesireExpression
-If the verb is included in desire verb, we detect it as command.
+If the verb is included in desire verb, we detect it as a command.
 ```
 I hope you will give me the money.
 I want you to do these things.
 ```
 #### 4. Question
-If there are ‘SQ’ tag or ‘SBARQ’ tag in parse result, we detect is as question.  
-You can see the details in [sentence type identification folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_type_identification).
+If there are ‘SQ’ tag or ‘SBARQ’ tag in parse result, we detect it as a question.  
+You can see the details in the [sentence type identification folder](https://github.com/zerobugplz/social-engineering-defense/tree/master/sentence_type_identification).
 
 ### Check Malicious with Blacklist
 
-We use blacklist for checking whether it's scam or not.
+We use blacklist which is made of TF-IDF for checking whether it's a scam or not.
 ```
 transport money
 ship money
 send money
 notify we
 ```
-You can see the detail in [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command)
+You can see the details in the [check phishing with command folder](https://github.com/zerobugplz/social-engineering-defense/blob/master/check_phishing_with_command)
 
 ### Check Malicious with Question Answering System(Paralex)
 
-We use [paralex](http://knowitall.cs.washington.edu/paralex/) system for this step. Please download our [file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web).  
+We use [paralex](http://knowitall.cs.washington.edu/paralex/) system for this step. It is basically Question Answering System, but we changed the database to use it as question scam detector. Please download our [modified paralex file](https://drive.google.com/file/d/1XYXagUwkcKcFUU6Kljvh6zJAVSnHnM0t/view?usp=drive_web).  
 
 ```
 unzip paralex-evaluation-test.zip
