@@ -112,6 +112,31 @@ curl http://localhost:8083/parse?sent=Who+invented+pizza # have no ["confidentia
 
 ## Demo
 
+### Dockerfile Demo
+Our system works on e-mail texts, but we also provide a docker demo where you can easily check your sentence to see if it is classified as a scam.
+Make sure that your computer has Docker.
+
+```
+# MAC
+brew cask install docker
+# UBUNTU
+sudo apt-get install docker.io
+# CENTOS
+sudo yum install docker-ce
+```
+
+Run Our shell script
+```
+./demo_start.sh
+```
+
+Run demo file
+```
+cd /social-engineering-defense/check_phishing_with_command
+python demo.py what is your password # Beep! Scam detected.
+```
+
+### Docker Hub Demo
 Our system works on e-mail texts, but we also provide a docker demo where you can easily check your sentence to see if it is classified as a scam.
 ```
 docker login
