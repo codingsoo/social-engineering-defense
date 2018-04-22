@@ -21,7 +21,7 @@ import edu.mit.jwi.item.Pointer;
 import edu.mit.jwi.morph.WordnetStemmer;
 
 class WordNet {
-	String path = System.getProperty("user.dir") + “/dict";
+	String path = System.getProperty("user.dir") + "/dict";
 	IDictionary dict = null;
 	
 	WordNet(){
