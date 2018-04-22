@@ -14,14 +14,14 @@ RUN wget https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-m
 RUN wget http://central.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar
 RUN wget http://nlp.stanford.edu/software/stanford-corenlp-full-2017-06-09.zip
 RUN unzip stanford-corenlp-full-2017-06-09.zip
-RUN mv stanford-corenlp-full-2017-06-09 jars
+RUN mv stanford-corenlp-full-2017-06-09 jar
 RUN rm -rf stanford-corenlp-full-2017-06-09.zip
-RUN mv edu.mit.jwi_2.4.0.jar jars
-RUN mv gson-2.8.0.jar jars
-RUN mv stanford-english-corenlp-2017-06-09-models.jar jars
-RUN mv commons-lang-2.6.jar jars
-RUN mv jars /social-engineering-defense/check_phishing_with_command
+RUN mv edu.mit.jwi_2.4.0.jar jar
+RUN mv gson-2.8.0.jar jar
+RUN mv stanford-english-corenlp-2017-06-09-models.jar jar
+RUN mv commons-lang-2.6.jar jar
+RUN mv jar /social-engineering-defense/check_phishing_with_command
 WORKDIR /social-engineering-defense/check_phishing_with_command
-RUN javac -cp "./jars/*" DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
+RUN javac -cp "./jar/*" DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 WORKDIR /
 
