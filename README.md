@@ -127,7 +127,8 @@ sudo yum install docker-ce
 
 Run Our shell script
 ```
-./demo_start.sh
+chmod 777 demo_start.sh
+sudo ./demo_start.sh
 ```
 
 Run demo file
