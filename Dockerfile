@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 MAINTAINER learnitdeep <learnitdeep@gmail.com>
 
 RUN apt-get update && apt-get -y upgrade
-RUN apt-get install -y python-pip default-jre default-jdk unzip wget git
+RUN apt-get install -y python-pip default-jre default-jdk unzip wget git curl
 RUN pip install pexpect simplejson bottle
 RUN git clone https://github.com/zerobugplz/social-engineering-defense.git
 WORKDIR /social-engineering-defense
