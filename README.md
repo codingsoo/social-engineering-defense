@@ -118,16 +118,16 @@ docker login
 docker pull learnitdeep/social-engineering-defense
 ```
 
-Please download our [file](https://drive.google.com/open?id=1AFKGLJj_JQnPhbi42SCzQdMrTWIKJPz6), and unzip it. you can link your computer's directory and docker containers directory with -v option.  
+Please download our [file](https://drive.google.com/file/d/1d3VIQYrMN_nOaDSD3S54XbCAGyb6zqwy/view?usp=sharing), and unzip it. you can link your computer's directory and docker containers directory with -v option.  
   
 This is the example.
 ```
-docker run -it -v /Users/learnitdeep/Desktop/social-engineering-defense-v1.0/:/workdir learnitdeep/social-engineering-defense
+docker run -it -v /Users/learnitdeep/Desktop/social-engineering-defense-demo/:/social-engineering-defense learnitdeep/social-engineering-defense
 ```
 
 Then you need to run paralex server.  
 ```
-cd /workdir/social-engineering-defense/paralex-evaluation-test/
+cd /social-engineering-defense/paralex-evaluation-test/
 ./scripts/start_nlp.sh & # start nlp server
 ./scripts/start_demo.sh & # start demo server
 ```
@@ -135,8 +135,8 @@ cd /workdir/social-engineering-defense/paralex-evaluation-test/
 Our demo file is located in /check_phishing_with_command/demo.py.
 First, you need to compile java files.
 ```
-cd /workdir/social-engineering-defense/check_phishing_with_command
-javac -cp "./jar/*" DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
+cd /social-engineering-defense/check_phishing_with_command
+javac -cp ./jar/*: DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 ```
 
 Now you can use our demo!

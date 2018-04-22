@@ -10,7 +10,7 @@ for count,word in enumerate(sys.argv):
         sentence2 = sentence2 + ' ' + word
 
 o1 = 'curl http://localhost:8083/parse?sent='+str(sentence1)
-o2 = 'java -cp “./jar/*:” DetectPhishingMail "result.txt" "null" "null" "temp.txt" '+str(sentence2)
+o2 = 'java -cp ./jar/*: DetectPhishingMail "result.txt" "null" "null" "temp.txt" '+str(sentence2)
 
 result1 = subprocess.check_output(o1, shell=True)
 result2 = subprocess.check_output(o2, shell=True)
