@@ -24,3 +24,4 @@ RUN mv jars /social-engineering-defense/check_phishing_with_command
 WORKDIR /social-engineering-defense/check_phishing_with_command
 RUN javac -cp "./jars/*" DetectPhishingMail.java CoreNLP.java MakeBlacklist.java WordNet.java
 WORKDIR /
+
