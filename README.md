@@ -112,7 +112,7 @@ curl http://localhost:8083/parse?sent=Who+invented+pizza # have no ["confidentia
 
 ## Demo
 
-We provide docker demo. Our system originally can handle files as an input, but demo only provides sentence. You can download docker image on dockerhub. Make sure that login dockerhub before pull our image.
+Our system works on e-mail texts, but we also provide a docker demo where you can easily check your sentence to see if it is classified as a scam.
 ```
 docker login
 docker pull learnitdeep/social-engineering-defense
