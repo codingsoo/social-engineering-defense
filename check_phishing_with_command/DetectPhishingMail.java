@@ -380,10 +380,15 @@ public class DetectPhishingMail {
 				boolean right = false;
 				List<String> sentences = readJsonArray(reader);
 				for (String value : sentences) {
-					value = WordUtils.capitalizeFully(value, new char[] { '.' });
-					if(checkMalicious(detectCommand(lp, value), value)) {
-						right = true;
-						break;
+					try{
+						value = WordUtils.capitalizeFully(value, new char[] { '.' });
+						if(checkMalicious(detectCommand(lp, value), value)) {
+							right = true;
+							break;
+						}
+					}
+					catch(OutOfMemoryError e) {
+						continue;
 					}
 				}
 				if(writer != null && !data_mode) {
