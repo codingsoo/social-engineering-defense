@@ -2,6 +2,7 @@
  * wordnet java library JWI
  * */
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import edu.mit.jwi.item.Pointer;
 import edu.mit.jwi.morph.WordnetStemmer;
 
 class WordNet {
-	String path = System.getProperty("user.dir") + "/dict";
+	String path = System.getProperty("user.dir") + File.separator +"dict";
 	IDictionary dict = null;
 	
 	WordNet(){
