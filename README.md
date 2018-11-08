@@ -1,5 +1,9 @@
 # Social Engineering Defense
 
+## Anounce
+
+New version is available in gitlab!! : https://gitlab.com/security-defenders/social-engineering-defense
+
 ## Purpose
 
 The purpose of this project is to detect scam e-mails based on text analysis. This repository includes e-mail crawling, sentence processing, sentence type identification, form item detection, command analysis and question analysis. We used open-source projects for each steps as follows.
