@@ -2,7 +2,9 @@
 
 ## Anounce
 
-New version is available in gitlab!! : https://gitlab.com/security-defenders/social-engineering-defense
+- Presented in BlackHat: https://i.blackhat.com/us-18/Thu-August-9/us-18-Harris-Catch-Me-Yes-We-Can-wp.pdf
+- Published in SA 2019: https://ieeexplore.ieee.org/abstract/document/8938036
+- New version is available in gitlab!! : https://gitlab.com/security-defenders/social-engineering-defense
 
 ## Purpose
 
